@@ -1724,7 +1724,224 @@ if st.button(
 
     </div>
     """)
+     # ========================================================
+# TASK 6 — EVALUATION & RELIABILITY
+# ========================================================
 
+st.markdown("<br>", unsafe_allow_html=True)
+
+render_html("""
+<div class="section-label">
+    TASK 6 • EVALUATION & RELIABILITY
+</div>
+""")
+
+evaluation_file = "evaluation_results.json"
+
+if os.path.exists(evaluation_file):
+
+    try:
+        with open(evaluation_file, "r", encoding="utf-8") as f:
+            evaluation_data = json.load(f)
+
+        scenarios = evaluation_data.get("scenarios", [])
+
+        render_html("""
+        <div class="signal">
+            <div class="signal-level">
+                📊 Agent Evaluation
+            </div>
+
+            <p>
+                ResearchRadar was evaluated across normal,
+                ambiguous and contradictory research conditions.
+                The evaluation measures task completion, evidence
+                quality, groundedness, hallucination risk,
+                recovery, uncertainty awareness, efficiency
+                and adaptive behaviour.
+            </p>
+        </div>
+        """)
+
+        # ----------------------------------------------------
+        # SCENARIO RESULTS
+        # ----------------------------------------------------
+
+        for scenario in scenarios:
+
+            name = scenario.get("name", "Unknown scenario")
+            runs = scenario.get("runs", [])
+
+            if not runs:
+                continue
+
+            run = runs[0]
+
+            task_completion = run.get("task_completion", 0)
+            evidence_quality = run.get("evidence_quality", 0)
+            groundedness = run.get("groundedness", 0)
+            hallucination = run.get("hallucination_risk", 0)
+            recovery = run.get("recovery", 0)
+            uncertainty = run.get("uncertainty_awareness", 0)
+            efficiency = run.get("resource_efficiency", 0)
+            adaptive = run.get("adaptive_behavior", 0)
+            latency = run.get("latency_seconds", 0)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            render_html(f"""
+            <div class="dashboard-card">
+
+                <div class="card-title">
+                    🧪 {escape_dynamic_text(name.title())} Scenario
+                </div>
+
+                <p style="margin-top:8px;">
+                    <strong>Task Completion:</strong>
+                    {task_completion}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Groundedness:</strong>
+                    {groundedness}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Evidence Quality:</strong>
+                    {evidence_quality}%
+                </p>
+
+                <p>
+                    <strong>Hallucination Risk:</strong>
+                    {hallucination}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Recovery:</strong>
+                    {recovery}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Uncertainty Awareness:</strong>
+                    {uncertainty}%
+                </p>
+
+                <p>
+                    <strong>Adaptive Behaviour:</strong>
+                    {adaptive}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Resource Efficiency:</strong>
+                    {efficiency}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Latency:</strong>
+                    {latency:.2f}s
+                </p>
+
+            </div>
+            """)
+
+        # ----------------------------------------------------
+        # OVERALL EVALUATION
+        # ----------------------------------------------------
+
+        all_runs = []
+
+        for scenario in scenarios:
+            all_runs.extend(scenario.get("runs", []))
+
+        if all_runs:
+
+            def avg(metric):
+                values = [
+                    float(run.get(metric, 0))
+                    for run in all_runs
+                    if run.get(metric) is not None
+                ]
+
+                return round(sum(values) / len(values), 1) if values else 0
+
+            e1, e2, e3, e4 = st.columns(4)
+
+            with e1:
+                st.metric(
+                    "Task Completion",
+                    f"{avg('task_completion')}%"
+                )
+
+            with e2:
+                st.metric(
+                    "Groundedness",
+                    f"{avg('groundedness')}%"
+                )
+
+            with e3:
+                st.metric(
+                    "Hallucination Risk",
+                    f"{avg('hallucination_risk')}%"
+                )
+
+            with e4:
+                st.metric(
+                    "Recovery",
+                    f"{avg('recovery')}%"
+                )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            render_html(f"""
+            <div class="memory">
+
+                <div class="section-label">
+                    EVALUATION CONCLUSION
+                </div>
+
+                <div class="memory-text">
+
+                    <strong>Scenarios tested:</strong>
+                    {len(scenarios)}
+                    <br>
+
+                    <strong>Repeated runs:</strong>
+                    {evaluation_data.get("configuration", {}).get("repeats", 1)}
+                    <br>
+
+                    <strong>Tool budget:</strong>
+                    {evaluation_data.get("configuration", {}).get("tool_budget", "Adaptive")}
+                    <br>
+
+                    <strong>Evaluation status:</strong>
+                    Completed
+                    <br><br>
+
+                    ResearchRadar demonstrates measurable task completion,
+                    evidence grounding, uncertainty awareness and recovery
+                    behaviour across different research conditions.
+
+                </div>
+
+            </div>
+            """)
+
+    except Exception as evaluation_error:
+
+        st.warning(
+            f"Evaluation results could not be loaded: {evaluation_error}"
+        )
+
+else:
+
+    render_html("""
+    <div class="dashboard-card">
+
+        <div class="card-title">
+            📊 Evaluation Results
+        </div>
+
+        <p>
+            Run <strong>evaluation.py</strong> to generate
+            evaluation_results.json and display Task 6 results here.
+        </p>
+
+    </div>
+    """)
 
     # ========================================================
     # FINDINGS

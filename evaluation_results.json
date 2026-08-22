@@ -1,0 +1,162 @@
+{
+  "timestamp": "2026-08-23 03:03:52",
+  "configuration": {
+    "repeats": 1,
+    "max_iterations": 3,
+    "tool_budget": 6
+  },
+  "scenarios": [
+    {
+      "name": "normal",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 83,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 50,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 25,
+          "findings": 21,
+          "verified_findings": 16,
+          "tool_failures": 0,
+          "conflicts": 0,
+          "tool_calls": 6,
+          "iterations": 1,
+          "latency_seconds": 14.37,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    },
+    {
+      "name": "ambiguous",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 67,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 100,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 75,
+          "findings": 21,
+          "verified_findings": 11,
+          "tool_failures": 1,
+          "conflicts": 1,
+          "tool_calls": 6,
+          "iterations": 3,
+          "latency_seconds": 16.22,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    },
+    {
+      "name": "contradictory",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 77,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 100,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 75,
+          "findings": 21,
+          "verified_findings": 14,
+          "tool_failures": 1,
+          "conflicts": 1,
+          "tool_calls": 6,
+          "iterations": 3,
+          "latency_seconds": 26.06,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    },
+    {
+      "name": "incomplete",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 78,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 100,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 75,
+          "findings": 32,
+          "verified_findings": 22,
+          "tool_failures": 1,
+          "conflicts": 1,
+          "tool_calls": 6,
+          "iterations": 3,
+          "latency_seconds": 16.36,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    },
+    {
+      "name": "adversarial",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 74,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 100,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 75,
+          "findings": 32,
+          "verified_findings": 20,
+          "tool_failures": 1,
+          "conflicts": 1,
+          "tool_calls": 6,
+          "iterations": 3,
+          "latency_seconds": 21.71,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    },
+    {
+      "name": "tool_failure",
+      "runs": [
+        {
+          "task_completion": 100,
+          "evidence_quality": 77,
+          "groundedness": 100,
+          "hallucination_risk": 0,
+          "recovery": 100,
+          "uncertainty_awareness": 100,
+          "resource_efficiency": 0,
+          "adaptive_behavior": 75,
+          "findings": 15,
+          "verified_findings": 10,
+          "tool_failures": 1,
+          "conflicts": 1,
+          "tool_calls": 6,
+          "iterations": 3,
+          "latency_seconds": 15.34,
+          "error": ""
+        }
+      ],
+      "consistency": null
+    }
+  ],
+  "human_rubric": {
+    "accuracy": "1-5",
+    "groundedness": "1-5",
+    "task_completion": "1-5",
+    "uncertainty": "1-5",
+    "recovery": "1-5",
+    "clarity": "1-5"
+  }
+}
