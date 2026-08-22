@@ -84,5 +84,6 @@ researchradar-agent/
 └── README.md
 ## 🚀 Live Demo
 
-👉 [Open ResearchRadar Live App]
-[text](https://researchradar-agent-j5rjyhiou6d3uotxxyvhzj.streamlit.app/)
+## 🚀 Live Demo
+
+👉 [Open ResearchRadar Live App](https://researchradar-agent-j5rjyhiou6d3uotxxyvhzj.streamlit.app/)
