@@ -2,9 +2,9 @@
 
 ## Autonomous Research & Competitor Intelligence Agent
 
-ResearchRadar is an autonomous AI-powered intelligence agent designed to help organizations, startups, and research institutions track research developments, competitor activities, and emerging industry signals.
+ResearchRadar is an autonomous intelligence agent designed to help organizations, startups, and research institutions monitor research developments, competitor activities, industry news, and emerging technology signals.
 
-The system analyzes relevant intelligence, identifies important strategic signals, explains why they matter, recommends actions, and produces a final strategic verdict.
+Instead of simply presenting raw information, ResearchRadar investigates a user-defined topic, combines academic and industry intelligence, identifies important strategic signals, explains why they matter, recommends actions, and produces a final strategic verdict.
 
 ---
 
@@ -37,53 +37,83 @@ Therefore, there is a need for an autonomous AI agent capable of continuously tr
 
 ## 💡 Project Description
 
-ResearchRadar allows users to enter a research or technology area and relevant competitors.
+ResearchRadar addresses this problem through an autonomous research and competitive intelligence workflow.
 
-The agent then follows an intelligence workflow:
+Users provide a research or technology area and optionally specify competitors they want to monitor.
 
-**Investigate → Analyze → Verify → Identify Signals → Recommend → Decide**
+ResearchRadar dynamically investigates the selected topic using multiple external intelligence sources, including academic research from **arXiv** and current industry developments through **Google News RSS**.
 
-It identifies relevant findings, highlights high-priority signals, explains their strategic significance through a **"So What?"** analysis, provides recommended actions, and generates a final verdict.
+The collected intelligence is then analyzed to identify relevant findings, high-priority signals, competitor activity, strategic implications, recommended actions, and a final verdict.
 
----
+### Core Intelligence Flow
 
-## 🚀 Features
-
-- 🔎 Research and technology intelligence search
-- 🧠 Autonomous investigation workflow
-- 🚨 High-priority signal detection
-- 💡 "So What?" strategic analysis
-- 🎯 Recommended actions
-- 🏢 Competitor activity tracking
-- 📊 Intelligence summary
-- 🎯 Final strategic verdict
-- 🖥️ Interactive Streamlit dashboard
+**Investigate → Collect → Analyze → Verify → Identify Signals → Explain → Recommend → Decide**
 
 ---
 
-## 🛠️ Technologies Used
+## 🚀 Key Features
 
-- Python
-- Streamlit
-- JSON
-- HTML
-- CSS
-- Git
-- GitHub
+### 🔎 1. Dynamic Topic Investigation
+
+ResearchRadar accepts user-defined research and technology topics rather than being restricted to a fixed domain.
+
+Examples include:
+
+- Artificial Intelligence
+- Electric Vehicles
+- Cybersecurity
+- Quantum Computing
+- Renewable Energy
+- Robotics
+- FinTech
+- Space Technology
+
+The system dynamically searches for information relevant to the selected topic.
 
 ---
 
-## 📂 Project Structure
+### 📚 2. arXiv Research Intelligence
+
+ResearchRadar integrates the **arXiv API** to retrieve recent academic research based on the user's selected research or technology topic.
+
+The system can use academic research to identify:
+
+- Emerging research areas
+- New scientific developments
+- Research trends
+- Recent publications
+- Potential technological breakthroughs
+
+This allows ResearchRadar to investigate topics that are not limited to a predefined dataset.
+
+---
+
+### 📰 3. Google News Industry Intelligence
+
+ResearchRadar uses **Google News RSS** to dynamically retrieve current industry and competitor-related developments.
+
+This can help identify:
+
+- Company announcements
+- Product launches
+- Partnerships
+- Investments
+- Funding activity
+- Industry developments
+- Technology trends
+- Regulatory developments
+
+---
+
+### 🧠 4. Multi-Source Intelligence
+
+ResearchRadar combines academic and industry intelligence to provide a broader understanding of a technology domain.
 
 ```text
-researchradar-agent/
-│
-├── app.py
-├── data.json
-├── requirements.txt
-└── README.md
-## 🚀 Live Demo
-
-## 🚀 Live Demo
-
-👉 [Open ResearchRadar Live App](https://researchradar-agent-j5rjyhiou6d3uotxxyvhzj.streamlit.app/)
+Academic Research
+       +
+Industry Intelligence
+       ↓
+Combined Intelligence
+       ↓
+Strategic Analysis
