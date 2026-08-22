@@ -2,6 +2,9 @@ import streamlit as st
 import requests
 import xml.etree.ElementTree as ET
 import textwrap
+import json
+import os
+from datetime import datetime
 
 
 # ============================================================
@@ -14,6 +17,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 
 
 
@@ -383,6 +387,43 @@ section[data-testid="stSidebar"] {
 }
 
 
+/* ================= MEMORY ================= */
+
+.memory {
+    background: #FDF3EC;
+    border: 1px solid #E9D8C6;
+    border-left: 6px solid #C6935E;
+    border-radius: 18px;
+    padding: 22px;
+}
+
+.memory-text {
+    font-size: 13px;
+    color: #6F5C5C;
+    margin-top: 8px;
+}
+
+.memory-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #FFFFFF;
+    border: 1px solid #E9D8C6;
+    color: #8A6A3D;
+    font-size: 11px;
+    font-weight: 800;
+    margin: 4px 6px 0 0;
+}
+
+.sidebar-memory-item {
+    font-size: 11px;
+    color: #806D6D;
+    line-height: 1.6;
+    padding: 6px 0;
+    border-bottom: 1px dashed #E8DADA;
+}
+
+
 /* ================= FOOTER ================= */
 
 .footer {
@@ -403,6 +444,72 @@ section[data-testid="stSidebar"] {
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 OPENALEX_API = "https://api.openalex.org/works"
+
+
+# ============================================================
+# MEMORY CONFIG
+#
+# TASK 4 — CONTEXT & MEMORY MANAGEMENT
+#
+# Two layers of memory are implemented:
+#
+# 1. SHORT-TERM (working) memory — st.session_state.
+#    Lives only for the current browser session. Every scan run
+#    in this session is appended here, so the app can reference
+#    "what we just did" across multiple steps/reruns without
+#    hitting disk. Cleared when the tab/session ends.
+#
+# 2. LONG-TERM (persistent) memory — a local JSON file.
+#    Survives app restarts. Every completed scan is appended
+#    here. Before a new scan runs, the MemoryAgent looks up
+#    prior scans on the same topic so the Strategy Agent can
+#    reason about trends over time (e.g. signal strength
+#    increasing/decreasing across repeated scans).
+# ============================================================
+
+MEMORY_FILE = "memory_store.json"
+
+
+def load_long_term_memory():
+    """Read all past scans from disk. Returns [] if none exist yet."""
+
+    if not os.path.exists(MEMORY_FILE):
+        return []
+
+    try:
+        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        # Corrupt or unreadable file — fail safe, don't crash the app.
+        return []
+
+
+def save_long_term_memory(entry):
+    """Append one scan record to the long-term memory file."""
+
+    history = load_long_term_memory()
+    history.append(entry)
+
+    # Keep the file bounded so it doesn't grow forever.
+    history = history[-200:]
+
+    try:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, indent=2)
+    except Exception:
+        pass  # Non-fatal — memory is a bonus feature, not core path.
+
+
+def init_session_memory():
+    """Ensure short-term (session) memory exists."""
+
+    if "session_history" not in st.session_state:
+        st.session_state.session_history = []
+
+
+# Initialize short-term memory as soon as it's defined,
+# before anything in the UI tries to read it.
+init_session_memory()
 
 
 # ============================================================
@@ -718,7 +825,8 @@ class StrategyAgent:
         self,
         topic,
         findings,
-        competitors
+        competitors,
+        prior_scans=None
     ):
 
         successful = [
@@ -789,6 +897,56 @@ class StrategyAgent:
                 "The analysis focuses on the research landscape."
             )
 
+        # ----------------------------------------------------
+        # MEMORY-AWARE CONTEXT
+        # Uses long-term memory (prior_scans) passed in by the
+        # MemoryAgent via the Orchestrator to reason about
+        # trends across repeated scans of the same topic.
+        # ----------------------------------------------------
+
+        prior_scans = prior_scans or []
+
+        if not prior_scans:
+
+            memory_context = (
+                "No memory found for this topic. "
+                "This is the first recorded scan."
+            )
+
+        else:
+
+            last_scan = prior_scans[-1]
+            last_signal = last_scan.get("signal", "UNKNOWN")
+            last_date = last_scan.get("timestamp", "an earlier session")
+
+            if last_signal == signal:
+
+                trend = (
+                    f"Signal strength is holding steady at "
+                    f"{signal}."
+                )
+
+            else:
+
+                order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+
+                if order.get(signal, 0) > order.get(last_signal, 0):
+                    direction = "growing"
+                else:
+                    direction = "cooling"
+
+                trend = (
+                    f"Signal has shifted from {last_signal} to "
+                    f"{signal} since the last scan — interest "
+                    f"appears to be {direction}."
+                )
+
+            memory_context = (
+                f"This topic has been scanned "
+                f"{len(prior_scans)} time(s) before, "
+                f"most recently on {last_date}. {trend}"
+            )
+
         return {
             "signal": signal,
             "verdict": verdict,
@@ -799,10 +957,53 @@ class StrategyAgent:
                 "research directions."
             ),
             "competitor_analysis": competitor_analysis,
+            "memory_context": memory_context,
             "total": total,
             "arxiv": arxiv_count,
             "openalex": openalex_count
         }
+
+
+# ============================================================
+# AGENT 3 — MEMORY AGENT
+# (Task 4 — Context & Memory Management)
+# ============================================================
+
+class MemoryAgent:
+
+    def recall(self, topic):
+        """
+        LONG-TERM RECALL.
+        Looks up the persistent memory file for prior scans on
+        a matching topic (case-insensitive substring match),
+        oldest to newest, so the Strategy Agent can spot trends.
+        """
+
+        history = load_long_term_memory()
+
+        topic_lower = topic.strip().lower()
+
+        matches = [
+            entry
+            for entry in history
+            if topic_lower in entry.get("topic", "").lower()
+        ]
+
+        return matches
+
+    def remember(self, entry):
+        """
+        Writes a completed scan to BOTH memory layers:
+        - short-term: st.session_state (this browser session only)
+        - long-term: JSON file on disk (persists across restarts)
+        """
+
+        # Short-term (session) memory
+        init_session_memory()
+        st.session_state.session_history.append(entry)
+
+        # Long-term (persistent) memory
+        save_long_term_memory(entry)
 
 
 # ============================================================
@@ -828,20 +1029,40 @@ class ResearchRadarOrchestrator:
             topic
         )
 
-        # STEP 3
+        # STEP 3 — recall relevant memory BEFORE strategizing,
+        # so the Strategy Agent can reason about trends.
+        memory_agent = MemoryAgent()
+
+        prior_scans = memory_agent.recall(topic)
+
+        # STEP 4
         strategy_agent = StrategyAgent()
 
         strategy = strategy_agent.run(
             topic,
             findings,
-            competitors
+            competitors,
+            prior_scans
         )
+
+        # STEP 5 — commit this scan to short-term + long-term memory
+        memory_entry = {
+            "topic": topic,
+            "objective": objective,
+            "competitors": competitors,
+            "signal": strategy["signal"],
+            "total_findings": strategy["total"],
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+
+        memory_agent.remember(memory_entry)
 
         return {
             "tools": tools,
             "findings": findings,
             "strategy": strategy,
-            "objective": objective
+            "objective": objective,
+            "prior_scans": prior_scans
         }
 
 
@@ -897,6 +1118,15 @@ with st.sidebar:
     </div>
 
     <div class="sidebar-agent">
+        Agent 3 — Memory
+    </div>
+
+    <div class="sidebar-text">
+        Recalls prior scans and persists
+        new ones across sessions.
+    </div>
+
+    <div class="sidebar-agent">
         Orchestrator
     </div>
 
@@ -905,6 +1135,42 @@ with st.sidebar:
         agent-to-agent handoff.
     </div>
     """)
+
+    st.divider()
+
+    render_html("""
+    <div class="sidebar-agent">
+        🧠 Long-Term Memory
+    </div>
+
+    <div class="sidebar-text">
+        Past scans, persisted on disk
+        across sessions.
+    </div>
+    """)
+
+    _long_term = load_long_term_memory()
+
+    if not _long_term:
+
+        render_html("""
+        <div class="sidebar-text">
+            No scans recorded yet.
+        </div>
+        """)
+
+    else:
+
+        for _entry in reversed(_long_term[-6:]):
+
+            render_html(f"""
+            <div class="sidebar-memory-item">
+                <strong>{_entry.get("topic", "Unknown")}</strong><br>
+                {_entry.get("signal", "—")} SIGNAL
+                &nbsp;•&nbsp;
+                {_entry.get("timestamp", "")}
+            </div>
+            """)
 
     st.success("System Online")
 
@@ -1286,6 +1552,27 @@ if st.button(
 
 
     # ========================================================
+    # MEMORY CONTEXT
+    # ========================================================
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    render_html(f"""
+    <div class="memory">
+
+        <div class="section-label">
+            🧠 MEMORY CONTEXT
+        </div>
+
+        <div class="memory-text">
+            {strategy["memory_context"]}
+        </div>
+
+    </div>
+    """)
+
+
+    # ========================================================
     # FINDINGS
     # ========================================================
 
@@ -1381,6 +1668,35 @@ if st.button(
 
 
     # ========================================================
+    # SHORT-TERM (SESSION) MEMORY
+    # ========================================================
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    render_html("""
+    <div class="section-label">
+        🕒 SESSION MEMORY (THIS BROWSER SESSION)
+    </div>
+    """)
+
+    with st.expander(
+        f"{len(st.session_state.session_history)} scan(s) run this session",
+        expanded=False
+    ):
+
+        for _i, _scan in enumerate(
+            reversed(st.session_state.session_history),
+            start=1
+        ):
+
+            render_html(f"""
+            <div class="memory-pill">
+                {_scan["topic"]} — {_scan["signal"]} — {_scan["timestamp"]}
+            </div>
+            """)
+
+
+    # ========================================================
     # MULTI-AGENT COLLABORATION
     # ========================================================
 
@@ -1392,7 +1708,7 @@ if st.button(
     </div>
     """)
 
-    a1, a2, a3 = st.columns(3)
+    a1, a2, a3, a4 = st.columns(4)
 
     with a1:
 
@@ -1452,6 +1768,27 @@ if st.button(
             <div class="agent-description">
                 Receives research findings and
                 converts them into strategic insights.
+            </div>
+
+        </div>
+        """)
+
+    with a4:
+
+        render_html("""
+        <div class="agent">
+
+            <div class="agent-icon">
+                🧠
+            </div>
+
+            <div class="agent-name">
+                Memory Agent
+            </div>
+
+            <div class="agent-description">
+                Recalls prior scans and persists
+                new ones for future context.
             </div>
 
         </div>
