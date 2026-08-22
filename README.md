@@ -20,28 +20,6 @@ researches, evaluates, compares and synthesizes evidence using
 multiple specialized agents.
 
 ---
-
-# 🧠 What ResearchRadar Does
-
-```text
-Research Objective
-       ↓
-Dynamic Planning
-       ↓
-Tool Selection
-       ↓
-Parallel Research
-       ↓
-Evidence Evaluation
-       ↓
-Conflict Detection
-       ↓
-Self Evaluation
-       ↓
-Replanning / Recovery
-       ↓
-Gemini Strategic Synthesis
-       ↓
 1. 🤖 Agentic Reasoning
 
 ResearchRadar follows an adaptive:
@@ -603,6 +581,4 @@ ResearchRadar doesn't just find research.
 
 It reasons over research, validates evidence, adapts to failures,
 remembers previous work and turns information into intelligence.
-Intelligence Brief
-       ↓
-Persistent Memory
+
