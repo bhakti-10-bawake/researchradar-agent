@@ -6,5 +6,77 @@
     "signal": "MEDIUM",
     "total_findings": 5,
     "timestamp": "2026-08-22 19:53"
+  },
+  {
+    "topic": "ai smart study",
+    "objective": "research",
+    "competitors": "notebook llm",
+    "signal": "HIGH",
+    "total_findings": 10,
+    "timestamp": "2026-08-22 20:12"
+  },
+  {
+    "topic": "ai study",
+    "objective": "Identify Emerging directions",
+    "competitors": "notebook llm",
+    "signal": "HIGH",
+    "total_findings": 10,
+    "timestamp": "2026-08-22 20:20"
+  },
+  {
+    "topic": "AI Smart Study",
+    "objective": "Develop a personalized AI study assistant that recommends study plans based on student performance, learning needs, and study behavior.",
+    "competitors": "NotebookLM",
+    "signal": "MEDIUM",
+    "total_findings": 5,
+    "timestamp": "2026-08-22 20:41"
+  },
+  {
+    "topic": "ai study",
+    "objective": "identify emerging directions",
+    "competitors": "",
+    "signal": "HIGH",
+    "total_findings": 20,
+    "selected_tools": [
+      "OpenAlex API",
+      "Crossref API",
+      "arXiv API",
+      "Semantic Scholar API",
+      "Google News RSS",
+      "GDELT API"
+    ],
+    "research_query": "\"ai study\"",
+    "timestamp": "2026-08-22 20:56"
+  },
+  {
+    "topic": "solid-state battries",
+    "objective": "identify emerging directions",
+    "competitors": "tesla,toyota,honda",
+    "signal": "MEDIUM",
+    "total_findings": 8,
+    "selected_tools": [
+      "OpenAlex API",
+      "Crossref API",
+      "Google News RSS",
+      "GDELT API"
+    ],
+    "research_query": "\"solid-state battries\"",
+    "timestamp": "2026-08-22 20:57"
+  },
+  {
+    "topic": "solid-state battries",
+    "objective": "Identify emerging developments, research directions and opportunities.",
+    "competitors": "tesla,toyota,honda",
+    "signal": "HIGH",
+    "total_findings": 12,
+    "selected_tools": [
+      "OpenAlex API",
+      "Crossref API",
+      "Google News RSS",
+      "GDELT API",
+      "Semantic Scholar API"
+    ],
+    "research_query": "\"solid-state battries\"",
+    "timestamp": "2026-08-22 21:22"
   }
 ]
