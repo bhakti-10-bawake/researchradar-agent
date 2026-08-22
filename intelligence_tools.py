@@ -1,271 +1,142 @@
 import requests
-import feedparser
-from urllib.parse import quote
+import urllib.parse
+import xml.etree.ElementTree as ET
 from datetime import datetime
 
 
 # ============================================================
-# GOOGLE NEWS RSS
-# ============================================================
-
-def search_google_news(topic, competitors="", max_results=8):
-
-    results = []
-
-    queries = [
-        f"{topic} latest developments",
-        f"{topic} industry news",
-        f"{topic} technology"
-    ]
-
-    competitor_list = [
-        c.strip()
-        for c in competitors.split(",")
-        if c.strip()
-    ]
-
-    for competitor in competitor_list:
-        queries.append(
-            f"{competitor} {topic}"
-        )
-
-    seen_titles = set()
-
-    for query in queries:
-
-        try:
-
-            encoded_query = quote(query)
-
-            url = (
-                "https://news.google.com/rss/search?"
-                f"q={encoded_query}"
-                "&hl=en-IN"
-                "&gl=IN"
-                "&ceid=IN:en"
-            )
-
-            feed = feedparser.parse(url)
-
-            for entry in feed.entries:
-
-                if len(results) >= max_results:
-                    break
-
-                title = entry.get(
-                    "title",
-                    "Untitled"
-                ).strip()
-
-                title_key = title.lower()
-
-                if title_key in seen_titles:
-                    continue
-
-                seen_titles.add(title_key)
-
-                summary = entry.get(
-                    "summary",
-                    ""
-                )
-
-                published = entry.get(
-                    "published",
-                    "Recent"
-                )
-
-                link = entry.get(
-                    "link",
-                    ""
-                )
-
-                source_name = "Google News"
-
-                if hasattr(entry, "source"):
-
-                    source_name = entry.source.get(
-                        "title",
-                        "Google News"
-                    )
-
-                organization = "Industry"
-
-                for competitor in competitor_list:
-
-                    if competitor.lower() in title.lower():
-
-                        organization = competitor
-
-                        break
-
-                important_words = [
-                    "launch",
-                    "acquisition",
-                    "investment",
-                    "funding",
-                    "patent",
-                    "breakthrough",
-                    "partnership",
-                    "expansion",
-                    "research",
-                    "regulation",
-                    "technology"
-                ]
-
-                text = (
-                    title + " " + summary
-                ).lower()
-
-                importance = "High"
-
-                if not any(
-                    word in text
-                    for word in important_words
-                ):
-
-                    importance = "Medium"
-
-                results.append({
-
-                    "tool": "Google News",
-
-                    "type": "Industry Intelligence",
-
-                    "topic": topic,
-
-                    "title": title,
-
-                    "summary": summary,
-
-                    "organization": organization,
-
-                    "importance": importance,
-
-                    "source": source_name,
-
-                    "date": published,
-
-                    "url": link,
-
-                    "signal":
-                        f"Industry development detected in {topic}"
-
-                })
-
-        except Exception:
-            continue
-
-    return results
-
-
-# ============================================================
-# ARXIV API
+# ARXIV TOOL
 # ============================================================
 
 def search_arxiv(topic, max_results=5):
 
-    results = []
-
     try:
-
-        encoded_topic = quote(
-            topic
+        query = urllib.parse.quote(
+            f"all:{topic}"
         )
 
         url = (
-            "https://export.arxiv.org/api/query?"
-            f"search_query=all:{encoded_topic}"
+            "https://export.arxiv.org/api/query"
+            f"?search_query={query}"
             f"&start=0"
             f"&max_results={max_results}"
-            f"&sortBy=submittedDate"
-            f"&sortOrder=descending"
+            "&sortBy=submittedDate"
+            "&sortOrder=descending"
         )
 
-        feed = feedparser.parse(url)
+        response = requests.get(
+            url,
+            timeout=15,
+            headers={
+                "User-Agent":
+                "ResearchRadar/1.0"
+            }
+        )
 
-        for entry in feed.entries:
+        response.raise_for_status()
 
-            title = entry.get(
-                "title",
-                "Untitled"
-            ).replace(
+        root = ET.fromstring(
+            response.text
+        )
+
+        namespace = {
+            "atom":
+            "http://www.w3.org/2005/Atom"
+        }
+
+        results = []
+
+        for entry in root.findall(
+            "atom:entry",
+            namespace
+        ):
+
+            title = entry.findtext(
+                "atom:title",
+                "",
+                namespace
+            ).strip().replace(
                 "\n",
                 " "
-            ).strip()
+            )
 
-            summary = entry.get(
-                "summary",
-                "No abstract available."
-            ).replace(
+            summary = entry.findtext(
+                "atom:summary",
+                "",
+                namespace
+            ).strip().replace(
                 "\n",
                 " "
-            ).strip()
+            )
 
-            authors = [
-                author.name
-                for author in entry.get(
-                    "authors",
-                    []
+            published = entry.findtext(
+                "atom:published",
+                "",
+                namespace
+            )
+
+            authors = []
+
+            for author in entry.findall(
+                "atom:author",
+                namespace
+            ):
+
+                name = author.findtext(
+                    "atom:name",
+                    "",
+                    namespace
                 )
-            ]
 
-            published = entry.get(
-                "published",
-                "Unknown"
-            )
-
-            arxiv_url = entry.get(
-                "id",
-                ""
-            )
+                if name:
+                    authors.append(name)
 
             results.append({
-
-                "tool": "arXiv",
-
-                "type": "Academic Research",
-
-                "topic": topic,
 
                 "title": title,
 
                 "summary": summary,
 
+                "source": "arXiv",
+
+                "date": published[:10]
+                if published
+                else "Unknown",
+
                 "organization":
-                    "Academic Research",
+                ", ".join(authors[:2])
+                if authors
+                else "Research Community",
 
                 "importance": "High",
 
-                "source": "arXiv",
-
-                "date": published,
-
-                "url": arxiv_url,
-
-                "authors": authors,
-
                 "signal":
-                    f"Academic research activity detected in {topic}"
+                "Recent academic research detected "
+                "in the selected technology area."
 
             })
 
-    except Exception:
-        return []
+        return results
 
-    return results
+    except Exception as e:
+
+        print(
+            "arXiv error:",
+            e
+        )
+
+        return []
 
 
 # ============================================================
-# OPENALEX API
+# OPENALEX TOOL
 # ============================================================
 
 def search_openalex(topic, max_results=5):
 
-    results = []
-
     try:
 
-        encoded_topic = quote(
+        encoded_topic = urllib.parse.quote(
             topic
         )
 
@@ -278,81 +149,42 @@ def search_openalex(topic, max_results=5):
 
         response = requests.get(
             url,
-            timeout=15
+            timeout=15,
+            headers={
+                "User-Agent":
+                "ResearchRadar/1.0"
+            }
         )
 
         response.raise_for_status()
 
         data = response.json()
 
-        for work in data.get(
+        results = []
+
+        for item in data.get(
             "results",
             []
         ):
 
-            title = work.get(
+            title = item.get(
                 "title",
-                "Untitled"
+                "Untitled research"
             )
 
-            abstract = (
-                "Abstract not available."
-            )
-
-            abstract_data = work.get(
-                "abstract_inverted_index"
-            )
-
-            if abstract_data:
-
-                words = []
-
-                for word, positions in (
-                    abstract_data.items()
-                ):
-
-                    for position in positions:
-
-                        words.append(
-                            (
-                                position,
-                                word
-                            )
-                        )
-
-                words.sort(
-                    key=lambda x: x[0]
-                )
-
-                abstract = " ".join(
-                    word
-                    for _, word in words
-                )
-
-            publication_date = work.get(
+            publication_date = item.get(
                 "publication_date",
                 "Unknown"
             )
 
-            work_url = work.get(
-                "doi"
-            )
-
-            if not work_url:
-
-                work_url = work.get(
-                    "id",
-                    ""
-                )
-
-            authorships = work.get(
+            authorships = item.get(
                 "authorships",
                 []
             )
 
             authors = []
 
-            for author_data in authorships:
+            for author_data in authorships[:2]:
 
                 author = author_data.get(
                     "author",
@@ -366,243 +198,122 @@ def search_openalex(topic, max_results=5):
                 if name:
                     authors.append(name)
 
-            institutions = []
-
-            for author_data in authorships:
-
-                for institution in author_data.get(
-                    "institutions",
-                    []
-                ):
-
-                    name = institution.get(
-                        "display_name"
-                    )
-
-                    if name and name not in institutions:
-
-                        institutions.append(
-                            name
-                        )
-
             results.append({
-
-                "tool": "OpenAlex",
-
-                "type": "Scholarly Research",
-
-                "topic": topic,
 
                 "title": title,
 
-                "summary": abstract,
-
-                "organization":
-                    ", ".join(institutions)
-                    if institutions
-                    else "Academic Research",
-
-                "importance": "Medium",
+                "summary":
+                "Scholarly work identified "
+                "through OpenAlex.",
 
                 "source": "OpenAlex",
 
                 "date": publication_date,
 
-                "url": work_url,
+                "organization":
+                ", ".join(authors)
+                if authors
+                else "Research Community",
 
-                "authors": authors,
-
-                "institutions": institutions,
+                "importance": "Medium",
 
                 "signal":
-                    f"Scholarly research activity detected in {topic}"
+                "Scholarly activity related to "
+                "the selected research area."
 
             })
 
-    except Exception:
+        return results
+
+    except Exception as e:
+
+        print(
+            "OpenAlex error:",
+            e
+        )
+
         return []
 
-    return results
-
 
 # ============================================================
-# AUTONOMOUS TOOL SELECTION
-# ============================================================
-
-def select_tools(topic, competitors=""):
-
-    topic_lower = topic.lower()
-
-    tools = []
-
-    # --------------------------------------------------------
-    # News is useful for almost every competitive-intelligence
-    # investigation.
-    # --------------------------------------------------------
-
-    tools.append("Google News")
-
-    # --------------------------------------------------------
-    # Research-heavy topics should use academic sources.
-    # --------------------------------------------------------
-
-    research_keywords = [
-
-        "research",
-        "science",
-        "scientific",
-        "paper",
-        "papers",
-        "study",
-        "academic",
-        "algorithm",
-        "machine learning",
-        "artificial intelligence",
-        "quantum",
-        "robotics",
-        "biotechnology",
-        "nanotechnology",
-        "physics",
-        "chemistry",
-        "medicine",
-        "computer vision",
-        "natural language",
-        "deep learning"
-
-    ]
-
-    if any(
-        keyword in topic_lower
-        for keyword in research_keywords
-    ):
-
-        tools.append("arXiv")
-
-        tools.append("OpenAlex")
-
-    # --------------------------------------------------------
-    # If no research-specific keyword is detected, still use
-    # OpenAlex for broader scholarly discovery when useful.
-    # --------------------------------------------------------
-
-    elif len(topic.split()) >= 2:
-
-        tools.append("OpenAlex")
-
-    # --------------------------------------------------------
-    # Remove duplicates while preserving order.
-    # --------------------------------------------------------
-
-    return list(
-        dict.fromkeys(tools)
-    )
-
-
-# ============================================================
-# RUN ALL SELECTED TOOLS
+# AUTONOMOUS INTELLIGENCE TOOL
 # ============================================================
 
 def run_intelligence_tools(
     topic,
-    competitors=""
+    competitors
 ):
 
-    selected_tools = select_tools(
-        topic,
+    print(
+        "\nResearchRadar Intelligence Agent"
+    )
+
+    print(
+        "Topic:",
+        topic
+    )
+
+    print(
+        "Competitors:",
         competitors
     )
 
-    all_results = []
+    selected_tools = [
+        "arXiv API",
+        "OpenAlex API"
+    ]
 
-    tool_status = []
-
-    # --------------------------------------------------------
-    # GOOGLE NEWS
-    # --------------------------------------------------------
-
-    if "Google News" in selected_tools:
-
-        news_results = search_google_news(
-            topic,
-            competitors
-        )
-
-        all_results.extend(
-            news_results
-        )
-
-        tool_status.append({
-
-            "tool": "Google News",
-
-            "selected": True,
-
-            "reason":
-                "Current industry and competitor activity"
-
-        })
+    print(
+        "Selected tools:",
+        selected_tools
+    )
 
     # --------------------------------------------------------
-    # ARXIV
+    # CALL ARXIV
     # --------------------------------------------------------
 
-    if "arXiv" in selected_tools:
+    arxiv_results = search_arxiv(
+        topic
+    )
 
-        arxiv_results = search_arxiv(
-            topic
-        )
-
-        all_results.extend(
-            arxiv_results
-        )
-
-        tool_status.append({
-
-            "tool": "arXiv",
-
-            "selected": True,
-
-            "reason":
-                "Academic research detected as relevant"
-
-        })
+    print(
+        "arXiv findings:",
+        len(arxiv_results)
+    )
 
     # --------------------------------------------------------
-    # OPENALEX
+    # CALL OPENALEX
     # --------------------------------------------------------
 
-    if "OpenAlex" in selected_tools:
+    openalex_results = search_openalex(
+        topic
+    )
 
-        openalex_results = search_openalex(
-            topic
-        )
-
-        all_results.extend(
-            openalex_results
-        )
-
-        tool_status.append({
-
-            "tool": "OpenAlex",
-
-            "selected": True,
-
-            "reason":
-                "Broader scholarly research landscape"
-
-        })
+    print(
+        "OpenAlex findings:",
+        len(openalex_results)
+    )
 
     # --------------------------------------------------------
-    # Remove duplicate titles
+    # COMBINE
     # --------------------------------------------------------
 
-    unique_results = []
+    findings = (
+        arxiv_results
+        + openalex_results
+    )
+
+    # --------------------------------------------------------
+    # REMOVE DUPLICATES
+    # --------------------------------------------------------
+
+    unique_findings = []
 
     seen = set()
 
-    for item in all_results:
+    for finding in findings:
 
-        title = item.get(
+        title = finding.get(
             "title",
             ""
         ).strip().lower()
@@ -615,19 +326,41 @@ def run_intelligence_tools(
 
         seen.add(title)
 
-        unique_results.append(
-            item
+        unique_findings.append(
+            finding
         )
+
+    print(
+        "Total findings:",
+        len(unique_findings)
+    )
 
     return {
 
         "selected_tools":
-            selected_tools,
-
-        "tool_status":
-            tool_status,
+        selected_tools,
 
         "findings":
-            unique_results
+        unique_findings,
+
+        "tool_status": [
+
+            {
+                "tool": "arXiv API",
+                "status":
+                "Success"
+                if arxiv_results
+                else "No results"
+            },
+
+            {
+                "tool": "OpenAlex API",
+                "status":
+                "Success"
+                if openalex_results
+                else "No results"
+            }
+
+        ]
 
     }
