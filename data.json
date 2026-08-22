@@ -1,0 +1,68 @@
+[
+  {
+    "title": "AI Healthcare Diagnosis Research",
+    "type": "research",
+    "organization": "MedTech Research Labs",
+    "topic": "AI healthcare",
+    "date": "2026-08-18",
+    "importance": "High",
+    "summary": "New research focuses on AI-assisted medical diagnosis and clinical decision support.",
+    "signal": "Increasing research activity in AI-assisted diagnosis",
+    "source": "Research Publication"
+  },
+  {
+    "title": "Competitor Launches AI Clinical Assistant",
+    "type": "competitor",
+    "organization": "HealthAI Technologies",
+    "topic": "AI healthcare",
+    "date": "2026-08-16",
+    "importance": "High",
+    "summary": "HealthAI Technologies announced an AI assistant designed to support clinical workflows.",
+    "signal": "Competitor entering AI clinical assistance",
+    "source": "Industry News"
+  },
+  {
+    "title": "New Patent for Medical AI System",
+    "type": "patent",
+    "organization": "HealthAI Technologies",
+    "topic": "AI healthcare",
+    "date": "2026-08-12",
+    "importance": "High",
+    "summary": "A patent application describes an AI system for analyzing medical information.",
+    "signal": "Competitor patent activity increasing",
+    "source": "Patent Database"
+  },
+  {
+    "title": "AI Diagnostics Market Expansion",
+    "type": "trend",
+    "organization": "Industry",
+    "topic": "AI healthcare",
+    "date": "2026-08-10",
+    "importance": "Medium",
+    "summary": "AI-based diagnostic technologies are seeing increased industry investment.",
+    "signal": "Growing market interest in AI diagnostics",
+    "source": "Industry Report"
+  },
+  {
+    "title": "Microsoft Expands Healthcare AI Research",
+    "type": "competitor",
+    "organization": "Microsoft",
+    "topic": "AI healthcare",
+    "date": "2026-08-08",
+    "importance": "Medium",
+    "summary": "Microsoft expanded research initiatives involving AI and healthcare data.",
+    "signal": "Large technology company increasing healthcare AI activity",
+    "source": "Industry News"
+  },
+  {
+    "title": "Google Research Publishes Medical AI Study",
+    "type": "research",
+    "organization": "Google",
+    "topic": "AI healthcare",
+    "date": "2026-08-05",
+    "importance": "Medium",
+    "summary": "Google researchers published new work related to machine learning in healthcare.",
+    "signal": "Continued research investment by major competitor",
+    "source": "Research Publication"
+  }
+]
