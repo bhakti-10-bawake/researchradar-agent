@@ -183,6 +183,76 @@ The framework supports:
 - ✅ Adaptive task decomposition
 
 ---
+## 6. Evaluation
+
+ResearchRadar was evaluated using an automated evaluation pipeline designed to measure reliability, robustness, evidence quality, groundedness, recovery, uncertainty awareness, adaptive behaviour, latency, and resource usage.
+
+### Evaluation Configuration
+
+- Repeats: 1
+- Maximum iterations: 3
+- Tool budget: 6
+- Scenarios tested: 6
+- Human evaluation rubric: 1–5 scale
+
+### Evaluation Scenarios
+
+The agent was tested under:
+
+1. **Normal** — Standard research request with available tools.
+2. **Ambiguous** — Research objective with incomplete or unclear intent.
+3. **Contradictory** — Evidence containing conflicting signals.
+4. **Incomplete** — Research performed with incomplete information.
+5. **Adversarial** — Challenging research conditions designed to test uncertainty handling.
+6. **Tool Failure** — External research tools intentionally unavailable or failing.
+
+### Automated Results
+
+| Scenario | Task Completion | Evidence Quality | Groundedness | Hallucination Risk | Recovery | Uncertainty Awareness | Adaptive Behaviour | Latency |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Normal | 100% | 83% | 100% | 0% | 50% | 100% | 25% | 14.37s |
+| Ambiguous | 100% | 67% | 100% | 0% | 100% | 100% | 75% | 16.22s |
+| Contradictory | 100% | 77% | 100% | 0% | 100% | 100% | 75% | 26.06s |
+| Incomplete | 100% | 78% | 100% | 0% | 100% | 100% | 75% | 16.36s |
+| Adversarial | 100% | 74% | 100% | 0% | 100% | 100% | 75% | 21.71s |
+| Tool Failure | 100% | 77% | 100% | 0% | 100% | 100% | 75% | 15.34s |
+
+### Additional Measurements
+
+The evaluator also recorded:
+
+- Number of research findings
+- Number of verified findings
+- Tool failures
+- Conflicting evidence
+- Number of tool calls
+- Number of reasoning iterations
+- Execution latency
+- Resource efficiency
+- Errors encountered during execution
+
+The evaluation demonstrated that the system maintained **100% task completion and 100% groundedness across all tested scenarios**, while maintaining **0% measured hallucination risk**. The agent also demonstrated recovery behaviour when tools failed or evidence conflicted.
+
+### Human Evaluation
+
+A human evaluation rubric was defined using a 1–5 scale for:
+
+- Accuracy
+- Groundedness
+- Task Completion
+- Uncertainty Handling
+- Recovery
+- Clarity
+
+The automated metrics provide reproducible system-level measurements, while the human rubric allows evaluators to independently assess the quality and usefulness of the final intelligence output.
+
+### Evaluation Artifact
+
+The complete machine-generated evaluation output is stored in:
+
+`evaluation_results.json`
+
+This artifact contains the configuration, scenario-level results, measured metrics, and human evaluation rubric.
 
 ## 🔄 Dynamic Planning & Conditional Routing
 
