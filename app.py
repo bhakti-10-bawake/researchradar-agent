@@ -6,10 +6,8 @@ import json
 import os
 from datetime import datetime
 
-from intelligence_tools import (
-    select_tools as intelligence_select_tools,
-    run_intelligence_tools
-)
+# TASK 5 — adaptive LangGraph agent
+from agent_graph import run_task5_agent
 
 
 # ============================================================
@@ -813,13 +811,47 @@ def search_openalex(topic, limit=5):
 
 
 # ============================================================
-# INTELLIGENCE TOOLS INTEGRATION
-# Task 2 — Dynamic External Tool Calling
+# TOOL ORCHESTRATOR
 # ============================================================
 
+def select_tools(topic):
 
-def select_tools(topic, objective="", competitors=""):
-    return intelligence_select_tools(topic, objective, competitors)
+    topic_lower = topic.lower()
+
+    research_terms = [
+        "ai",
+        "artificial intelligence",
+        "machine learning",
+        "deep learning",
+        "robot",
+        "robotics",
+        "quantum",
+        "battery",
+        "batteries",
+        "semiconductor",
+        "health",
+        "healthcare",
+        "biotech",
+        "energy",
+        "technology",
+        "research",
+        "software",
+        "materials",
+        "electric vehicle"
+    ]
+
+    selected = []
+
+    if any(
+        term in topic_lower
+        for term in research_terms
+    ):
+        selected.append("arXiv")
+
+    # OpenAlex is always useful for scholarly research.
+    selected.append("OpenAlex")
+
+    return list(dict.fromkeys(selected))
 
 
 # ============================================================
@@ -828,8 +860,26 @@ def select_tools(topic, objective="", competitors=""):
 
 class ResearchAgent:
 
-    def run(self, topic, objective="", competitors=""):
-        return run_intelligence_tools(topic, objective, competitors)
+    def __init__(self, tools):
+        self.tools = tools
+
+    def run(self, topic):
+
+        findings = []
+
+        if "arXiv" in self.tools:
+
+            findings.extend(
+                search_arxiv(topic)
+            )
+
+        if "OpenAlex" in self.tools:
+
+            findings.extend(
+                search_openalex(topic)
+            )
+
+        return findings
 
 
 # ============================================================
@@ -838,51 +888,141 @@ class ResearchAgent:
 
 class StrategyAgent:
 
-    def run(self, topic, findings, competitors, prior_scans=None, objective=""):
+    def run(
+        self,
+        topic,
+        findings,
+        competitors,
+        prior_scans=None
+    ):
+
         successful = [
-            item for item in findings
-            if "unavailable" not in item.get("title", "").lower()
+            item
+            for item in findings
+            if "unavailable"
+            not in item.get(
+                "title",
+                ""
+            ).lower()
         ]
+
         total = len(successful)
-        arxiv_count = sum(1 for item in successful if item.get("source") == "arXiv")
-        openalex_count = sum(1 for item in successful if item.get("source") == "OpenAlex")
 
-        if total >= 8:
-            signal = "HIGH"
-            verdict = "Strong relevant intelligence activity detected. The topic shows significant research and/or market activity."
-        elif total >= 3:
-            signal = "MEDIUM"
-            verdict = "Moderate relevant intelligence activity detected. The topic shows meaningful potential for investigation."
-        else:
-            signal = "LOW"
-            verdict = "Limited relevant intelligence activity detected. More evidence may be useful before making a decision."
-
-        competitor_analysis = (
-            f"Competitor context considered: {competitors}."
-            if competitors.strip()
-            else "No competitors were specified. The analysis focuses on the research and technology landscape."
+        arxiv_count = sum(
+            1
+            for item in successful
+            if item["source"] == "arXiv"
         )
 
-        prior_scans = prior_scans or []
-        if not prior_scans:
-            memory_context = "No memory found for this topic. This is the first recorded scan."
+        openalex_count = sum(
+            1
+            for item in successful
+            if item["source"] == "OpenAlex"
+        )
+
+        if total >= 8:
+
+            signal = "HIGH"
+
+            verdict = (
+                "Strong research activity detected. "
+                "This is an actively developing area "
+                "with significant scholarly attention."
+            )
+
+        elif total >= 3:
+
+            signal = "MEDIUM"
+
+            verdict = (
+                "Moderate research activity detected. "
+                "The topic shows meaningful potential "
+                "for further investigation."
+            )
+
         else:
+
+            signal = "LOW"
+
+            verdict = (
+                "Limited research activity detected. "
+                "The area may represent an early-stage "
+                "or underexplored opportunity."
+            )
+
+        if competitors.strip():
+
+            competitor_analysis = (
+                f"Competitor context considered: "
+                f"{competitors}."
+            )
+
+        else:
+
+            competitor_analysis = (
+                "No competitors were specified. "
+                "The analysis focuses on the research landscape."
+            )
+
+        # ----------------------------------------------------
+        # MEMORY-AWARE CONTEXT
+        # Uses long-term memory (prior_scans) passed in by the
+        # MemoryAgent via the Orchestrator to reason about
+        # trends across repeated scans of the same topic.
+        # ----------------------------------------------------
+
+        prior_scans = prior_scans or []
+
+        if not prior_scans:
+
+            memory_context = (
+                "No memory found for this topic. "
+                "This is the first recorded scan."
+            )
+
+        else:
+
             last_scan = prior_scans[-1]
             last_signal = last_scan.get("signal", "UNKNOWN")
             last_date = last_scan.get("timestamp", "an earlier session")
-            order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+
             if last_signal == signal:
-                trend = f"Signal strength is holding steady at {signal}."
-            elif order.get(signal, 0) > order.get(last_signal, 0):
-                trend = f"Signal has shifted from {last_signal} to {signal} since the last scan — interest appears to be growing."
+
+                trend = (
+                    f"Signal strength is holding steady at "
+                    f"{signal}."
+                )
+
             else:
-                trend = f"Signal has shifted from {last_signal} to {signal} since the last scan — interest appears to be cooling."
-            memory_context = f"This topic has been scanned {len(prior_scans)} time(s) before, most recently on {last_date}. {trend}"
+
+                order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+
+                if order.get(signal, 0) > order.get(last_signal, 0):
+                    direction = "growing"
+                else:
+                    direction = "cooling"
+
+                trend = (
+                    f"Signal has shifted from {last_signal} to "
+                    f"{signal} since the last scan — interest "
+                    f"appears to be {direction}."
+                )
+
+            memory_context = (
+                f"This topic has been scanned "
+                f"{len(prior_scans)} time(s) before, "
+                f"most recently on {last_date}. {trend}"
+            )
 
         return {
             "signal": signal,
             "verdict": verdict,
-            "recommendation": "Prioritize the highest-relevance findings, compare them with existing solutions, and monitor the strongest research and market signals.",
+            "recommendation": (
+                "Monitor emerging research, compare "
+                "new approaches with existing solutions, "
+                "and investigate technically promising "
+                "research directions."
+            ),
             "competitor_analysis": competitor_analysis,
             "memory_context": memory_context,
             "total": total,
@@ -893,72 +1033,103 @@ class StrategyAgent:
 
 # ============================================================
 # AGENT 3 — MEMORY AGENT
+# (Task 4 — Context & Memory Management)
 # ============================================================
 
 class MemoryAgent:
 
     def recall(self, topic):
+        """
+        LONG-TERM RECALL.
+        Looks up the persistent memory file for prior scans on
+        a matching topic (case-insensitive substring match),
+        oldest to newest, so the Strategy Agent can spot trends.
+        """
+
         history = load_long_term_memory()
+
         topic_lower = topic.strip().lower()
-        return [
-            entry for entry in history
+
+        matches = [
+            entry
+            for entry in history
             if topic_lower in entry.get("topic", "").lower()
         ]
 
+        return matches
+
     def remember(self, entry):
+        """
+        Writes a completed scan to BOTH memory layers:
+        - short-term: st.session_state (this browser session only)
+        - long-term: JSON file on disk (persists across restarts)
+        """
+
+        # Short-term (session) memory
         init_session_memory()
         st.session_state.session_history.append(entry)
+
+        # Long-term (persistent) memory
         save_long_term_memory(entry)
 
 
 # ============================================================
-# ORCHESTRATOR — TASK 3 + TASK 4
+# ORCHESTRATOR — TASK 3
 # ============================================================
 
 class ResearchRadarOrchestrator:
 
-    def run(self, topic, objective, competitors):
-        tools = select_tools(topic, objective, competitors)
+    def run(
+        self,
+        topic,
+        objective,
+        competitors
+    ):
 
-        research_agent = ResearchAgent()
-        tool_result = research_agent.run(topic, objective, competitors)
-        findings = tool_result.get("findings", [])
+        # STEP 1
+        tools = select_tools(topic)
 
+        # STEP 2
+        research_agent = ResearchAgent(tools)
+
+        findings = research_agent.run(
+            topic
+        )
+
+        # STEP 3 — recall relevant memory BEFORE strategizing,
+        # so the Strategy Agent can reason about trends.
         memory_agent = MemoryAgent()
+
         prior_scans = memory_agent.recall(topic)
 
+        # STEP 4
         strategy_agent = StrategyAgent()
+
         strategy = strategy_agent.run(
             topic,
             findings,
             competitors,
-            prior_scans,
-            objective
+            prior_scans
         )
 
+        # STEP 5 — commit this scan to short-term + long-term memory
         memory_entry = {
             "topic": topic,
             "objective": objective,
             "competitors": competitors,
             "signal": strategy["signal"],
             "total_findings": strategy["total"],
-            "selected_tools": tool_result.get("selected_tools", tools),
-            "research_query": tool_result.get("research_query", ""),
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
         }
+
         memory_agent.remember(memory_entry)
 
         return {
-            "tools": tool_result.get("selected_tools", tools),
+            "tools": tools,
             "findings": findings,
             "strategy": strategy,
             "objective": objective,
-            "prior_scans": prior_scans,
-            "research_query": tool_result.get("research_query", ""),
-            "research_queries": tool_result.get("research_queries", []),
-            "tool_status": tool_result.get("tool_status", []),
-            "source_counts": tool_result.get("source_counts", {}),
-            "intent": tool_result.get("intent", [])
+            "prior_scans": prior_scans
         }
 
 
@@ -1009,8 +1180,8 @@ with st.sidebar:
     </div>
 
     <div class="sidebar-text">
-        Receives Agent 1 findings and
-        converts them into strategic insights.
+        Receives verified evidence and
+        uses Gemini to synthesize strategic intelligence.
     </div>
 
     <div class="sidebar-agent">
@@ -1318,13 +1489,7 @@ if st.button(
         )
 
     # --------------------------------------------------------
-    # ORCHESTRATOR
-    # --------------------------------------------------------
-
-    orchestrator = ResearchRadarOrchestrator()
-
-    # --------------------------------------------------------
-    # TOOL SELECTION
+    # TASK 5 — ADAPTIVE LANGGRAPH ORCHESTRATOR
     # --------------------------------------------------------
 
     with st.status(
@@ -1333,48 +1498,137 @@ if st.button(
     ):
 
         st.write(
-            "🧭 **Orchestrator:** Understanding objective..."
+            "🧭 **Orchestrator:** Planning the intelligence mission..."
         )
 
-        tools = select_tools(
+        st.write(
+            "🔀 **Planner:** Selecting tools and decomposing the objective..."
+        )
+
+        st.write(
+            "🔬 **Research Agent:** Collecting evidence in parallel..."
+        )
+
+        task5_state = run_task5_agent(
             topic,
             objective,
-            competitors
+            competitors,
+            max_iterations=3,
+            tool_budget=6
+        )
+
+        tools = task5_state.get("selected_tools", [])
+        findings = task5_state.get("findings", [])
+        strategy = task5_state.get("strategy", {})
+
+        st.write(
+            f"🛠️ **Tools selected:** {', '.join(tools) if tools else 'Adaptive fallback'}"
         )
 
         st.write(
-            f"🛠️ **Tools selected:** "
-            f"{', '.join(tools)}"
+            "⚖️ **Evidence Judge:** Checking relevance, conflicts and uncertainty..."
         )
 
         st.write(
-            "🔬 **Research Agent:** "
-            "Collecting scholarly evidence..."
+            "🤝 **Agent handoff:** Research → Evidence Judge → Self-Evaluator → Strategy"
         )
 
-        result = orchestrator.run(
-            topic,
-            objective,
-            competitors
-        )
+        if strategy.get("llm_status") == "success":
+            st.write(
+                "🧠 **Strategy Agent:** Gemini synthesized the verified evidence into an intelligence brief."
+            )
+        else:
+            st.write(
+                "🧠 **Strategy Agent:** LLM unavailable; evidence-grounded fallback used."
+            )
 
         st.write(
-            "🎯 **Strategy Agent:** "
-            "Analyzing research findings..."
+            "✅ **Adaptive multi-agent pipeline complete.**"
         )
 
-        st.write(
-            "🤝 **Agent handoff:** "
-            "Research Agent → Strategy Agent"
-        )
+    result = {
+        "findings": findings,
+        "strategy": strategy,
+        "final_answer": task5_state.get("final_answer", {}),
+        "execution_trace": task5_state.get("execution_trace", []),
+        "selected_tools": tools,
+        "verified_findings": task5_state.get("verified_findings", []),
+    }
 
-        st.write(
-            "✅ **Multi-agent pipeline complete.**"
-        )
+    final_answer = result["final_answer"]
+    final_verdict = final_answer.get("verdict") or strategy.get("verdict", "WATCH CLOSELY")
 
 
-    findings = result["findings"]
-    strategy = result["strategy"]
+    # ========================================================
+    # AI INTELLIGENCE BRIEF — TASK 5
+    # ========================================================
+
+    st.divider()
+
+    render_html("""
+    <div class="section-label">
+        AI INTELLIGENCE BRIEF
+    </div>
+    """)
+
+    summary_text = strategy.get("summary") or strategy.get("verdict") or "No synthesis was generated."
+    trends_text = strategy.get("trends", "")
+    opportunities = strategy.get("opportunities", []) or []
+    risks = strategy.get("risks", []) or []
+    confidence = strategy.get("confidence", 0)
+    evidence_count = strategy.get("evidence_count", len(task5_state.get("verified_findings", [])))
+
+    key_findings = strategy.get("key_findings", []) or []
+    competitor_context = strategy.get("competitor_analysis", "")
+    recommendation_text = strategy.get("recommendation", "")
+    llm_status = strategy.get("llm_status", "unknown")
+
+    render_html(f"""
+    <div class="signal">
+        <div class="signal-level">🧠 Intelligence Brief</div>
+        <p>{escape_dynamic_text(summary_text)}</p>
+        <p><strong>Emerging trend:</strong> {escape_dynamic_text(trends_text or "No clear trend established.")}</p>
+        <p><strong>Confidence:</strong> {int(float(confidence) * 100)}% &nbsp; • &nbsp; <strong>Verified evidence:</strong> {evidence_count} sources</p>
+    </div>
+    """)
+
+    if llm_status == "success":
+        render_html("""
+        <div class="dashboard-card" style="margin-top:14px;">
+            <div class="card-title">🔎 What the evidence is actually saying</div>
+        </div>
+        """)
+        for i, item in enumerate(key_findings[:5], 1):
+            if isinstance(item, dict):
+                title = item.get("title", "Key finding")
+                insight = item.get("insight") or item.get("summary", "")
+                source = item.get("source", "Verified evidence")
+            else:
+                title, insight, source = "Key finding", str(item), "Verified evidence"
+            render_html(f"""
+            <div class="finding">
+                <div class="finding-title">{i}. {escape_dynamic_text(title)}</div>
+                <div class="finding-summary">{escape_dynamic_text(insight)}</div>
+                <div class="finding-meta"><strong>Evidence:</strong> {escape_dynamic_text(source)}</div>
+            </div>
+            """)
+
+        render_html(f"""
+        <div class="memory" style="margin-top:14px;">
+            <div class="section-label">COMPETITOR CONTEXT</div>
+            <div class="memory-text">{escape_dynamic_text(competitor_context or "No competitor-specific conclusion was supported by the evidence.")}</div>
+            <div class="section-label" style="margin-top:16px;">RECOMMENDED NEXT MOVE</div>
+            <div class="memory-text">{escape_dynamic_text(recommendation_text)}</div>
+        </div>
+        """)
+
+    b1, b2 = st.columns(2)
+
+    with b1:
+        render_html("""<div class="dashboard-card"><div class="card-title">🚀 Opportunities</div>""" + "".join(f"<p>• {escape_dynamic_text(x)}</p>" for x in opportunities[:3]) + "</div>")
+
+    with b2:
+        render_html("""<div class="dashboard-card"><div class="card-title">⚠️ Risks / Uncertainty</div>""" + "".join(f"<p>• {escape_dynamic_text(x)}</p>" for x in risks[:3]) + "</div>")
 
 
     # ========================================================
@@ -1434,7 +1688,7 @@ if st.button(
         </div>
 
         <p>
-            {escape_dynamic_text(strategy["verdict"])}
+            {escape_dynamic_text(final_verdict)}
         </p>
 
         <p>
@@ -1484,7 +1738,11 @@ if st.button(
     </div>
     """)
 
-    st.header("📚 Scholarly Findings")
+    st.header("📚 Supporting Evidence")
+
+    st.caption(
+        f"The agent synthesized the evidence above. Raw sources are retained here for verification ({len(findings)} collected)."
+    )
 
     if not findings:
 
@@ -1494,84 +1752,88 @@ if st.button(
 
     else:
 
-        for index, finding in enumerate(
-            findings,
-            start=1
+        with st.expander(
+            f"View supporting sources ({len(findings)})",
+            expanded=False
         ):
+            for index, finding in enumerate(
+                findings[:8],
+                start=1
+            ):
 
-            title = finding.get(
-                "title",
-                "Untitled research"
-            )
-
-            summary = finding.get(
-                "summary",
-                "No summary available."
-            )
-
-            source = finding.get(
-                "source",
-                "Unknown"
-            )
-
-            date = finding.get(
-                "date",
-                "Unknown"
-            )
-
-            authors = finding.get(
-                "authors",
-                "Not available"
-            )
-
-            url = finding.get(
-                "url",
-                ""
-            )
-
-            if len(summary) > 650:
-                summary = summary[:650] + "..."
-
-            safe_title = escape_dynamic_text(title)
-            safe_summary = escape_dynamic_text(summary)
-            safe_authors = escape_dynamic_text(
-                authors if authors else "Not available"
-            )
-            safe_date = escape_dynamic_text(date)
-
-            render_html(f"""
-            <div class="finding">
-
-                <span class="badge">
-                    {source}
-                </span>
-
-                <div class="finding-title">
-                    {index}. {safe_title}
-                </div>
-
-                <div class="finding-summary">
-                    {safe_summary}
-                </div>
-
-                <div class="finding-meta">
-                    <strong>Authors:</strong>
-                    {safe_authors}
-
-                    &nbsp; • &nbsp;
-
-                    <strong>Date:</strong>
-                    {safe_date}
-                </div>
-
-            </div>
-            """)
-
-            if url:
-
-                st.markdown(
-                    f"[↗ View {source} source]({url})"
+                title = finding.get(
+                    "title",
+                    "Untitled research"
                 )
+
+                summary = finding.get(
+                    "summary",
+                    "No summary available."
+                )
+
+                source = finding.get(
+                    "source",
+                    "Unknown"
+                )
+
+                date = finding.get(
+                    "date",
+                    "Unknown"
+                )
+
+                authors = finding.get(
+                    "authors",
+                    "Not available"
+                )
+
+                url = finding.get(
+                    "url",
+                    ""
+                )
+
+                if len(summary) > 650:
+                    summary = summary[:650] + "..."
+
+                safe_title = escape_dynamic_text(title)
+                safe_summary = escape_dynamic_text(summary)
+                safe_authors = escape_dynamic_text(
+                    authors if authors else "Not available"
+                )
+                safe_date = escape_dynamic_text(date)
+
+                render_html(f"""
+                <div class="finding">
+
+                    <span class="badge">
+                        {source}
+                    </span>
+
+                    <div class="finding-title">
+                        {index}. {safe_title}
+                    </div>
+
+                    <div class="finding-summary">
+                        {safe_summary}
+                    </div>
+
+                    <div class="finding-meta">
+                        <strong>Authors:</strong>
+                        {safe_authors}
+
+                        &nbsp; • &nbsp;
+
+                        <strong>Date:</strong>
+                        {safe_date}
+                    </div>
+
+                </div>
+                """)
+
+                if url:
+
+                    st.markdown(
+                        f"[↗ View {source} source]({url})"
+                    )
 
 
     # ========================================================

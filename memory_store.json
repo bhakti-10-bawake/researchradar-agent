@@ -78,5 +78,52 @@
     ],
     "research_query": "\"solid-state battries\"",
     "timestamp": "2026-08-22 21:22"
+  },
+  {
+    "topic": "Solid-state batteries",
+    "objective": "Identify recent research, technological breakthroughs, manufacturing challenges, competitor developments, and commercial opportunities in solid-state battery technology, with a focus on improving energy density, safety, charging speed, cycle life, and scalability for electric vehicles.",
+    "competitors": "Toyota, QuantumScape, Samsung SDI",
+    "signal": "HIGH",
+    "total_findings": 20,
+    "selected_tools": [
+      "OpenAlex API",
+      "Crossref API",
+      "arXiv API",
+      "Semantic Scholar API",
+      "Google News RSS",
+      "GDELT API"
+    ],
+    "research_query": "\"Solid-state batteries\"",
+    "timestamp": "2026-08-22 21:33"
+  },
+  {
+    "topic": "AI-powered medical imaging",
+    "objective": "Analyze recent research and industry developments in AI-powered medical imaging, focusing on diagnostic accuracy, clinical adoption, regulatory challenges, multimodal AI, and opportunities for startups. Identify the major technology trends, competitive risks, and the most promising areas for future development.",
+    "competitors": "Aidoc, Tempus, Viz.ai",
+    "signal": "WATCH CLOSELY",
+    "total_findings": 17,
+    "selected_tools": [],
+    "confidence": 0.56,
+    "iterations": 3,
+    "replanned": true,
+    "timestamp": "2026-08-22 23:13"
+  },
+  {
+    "topic": "Solid-state batteries",
+    "objective": "Identify emerging developments, research directions and opportunities.",
+    "competitors": "tesla,toyota,honda",
+    "signal": "HIGH SIGNAL",
+    "total_findings": 15,
+    "selected_tools": [
+      "OpenAlex API",
+      "Crossref API",
+      "Google News RSS",
+      "GDELT API",
+      "Semantic Scholar API"
+    ],
+    "confidence": 1.0,
+    "iterations": 1,
+    "replanned": false,
+    "timestamp": "2026-08-23 00:18"
   }
 ]
