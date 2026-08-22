@@ -477,198 +477,41 @@ with col2:
 
 st.write("")
 
+# ============================================================
+# SEARCH AGENT
+# ============================================================
+
 def search_intelligence(topic, competitors):
 
-    import feedparser
-    from urllib.parse import quote
-
-    results = []
-
-    # --------------------------------------------------------
-    # Build dynamic search queries
-    # --------------------------------------------------------
-
-    queries = [
-        f"{topic} latest research",
-        f"{topic} latest developments",
-        f"{topic} industry news",
-        f"{topic} technology trends"
-    ]
+    topic = topic.lower()
 
     competitor_list = [
-        c.strip()
+        c.strip().lower()
         for c in competitors.split(",")
         if c.strip()
     ]
 
-    # Add competitor-specific searches
-    for competitor in competitor_list:
-        queries.append(
-            f"{competitor} {topic}"
+    results = []
+
+    for item in DATA:
+
+        topic_match = (
+            topic in item.get("topic", "").lower()
         )
 
-    # --------------------------------------------------------
-    # Search Google News RSS dynamically
-    # --------------------------------------------------------
+        competitor_match = any(
+            competitor in item.get(
+                "organization",
+                ""
+            ).lower()
+            for competitor in competitor_list
+        )
 
-    for query in queries:
+        if topic_match or competitor_match:
 
-        try:
+            results.append(item)
 
-            encoded_query = quote(query)
-
-            url = (
-                "https://news.google.com/rss/search?"
-                f"q={encoded_query}"
-                "&hl=en-IN"
-                "&gl=IN"
-                "&ceid=IN:en"
-            )
-
-            feed = feedparser.parse(url)
-
-            for entry in feed.entries[:5]:
-
-                title = entry.get(
-                    "title",
-                    "Untitled"
-                )
-
-                summary = entry.get(
-                    "summary",
-                    "No summary available."
-                )
-
-                source = entry.get(
-                    "source",
-                    {}
-                )
-
-                if isinstance(source, dict):
-
-                    source_name = source.get(
-                        "title",
-                        "Google News"
-                    )
-
-                else:
-
-                    source_name = "Google News"
-
-                published = entry.get(
-                    "published",
-                    "Recent"
-                )
-
-                # ------------------------------------------------
-                # Try to identify organization
-                # ------------------------------------------------
-
-                organization = "Industry"
-
-                for competitor in competitor_list:
-
-                    if competitor.lower() in title.lower():
-
-                        organization = competitor
-
-                        break
-
-                # ------------------------------------------------
-                # Determine importance
-                # ------------------------------------------------
-
-                important_words = [
-                    "launch",
-                    "acquisition",
-                    "investment",
-                    "funding",
-                    "patent",
-                    "breakthrough",
-                    "new model",
-                    "partnership",
-                    "expansion",
-                    "research",
-                    "regulation",
-                    "technology"
-                ]
-
-                importance = "High"
-
-                if not any(
-                    word in (
-                        title + " " + summary
-                    ).lower()
-                    for word in important_words
-                ):
-
-                    importance = "Medium"
-
-                # ------------------------------------------------
-                # Strategic signal
-                # ------------------------------------------------
-
-                signal = (
-                    f"New development detected in "
-                    f"{topic}"
-                )
-
-                if organization != "Industry":
-
-                    signal = (
-                        f"{organization} is showing "
-                        f"activity related to {topic}"
-                    )
-
-                # ------------------------------------------------
-                # Add finding
-                # ------------------------------------------------
-
-                results.append({
-
-                    "topic": topic,
-
-                    "title": title,
-
-                    "summary": summary,
-
-                    "organization": organization,
-
-                    "importance": importance,
-
-                    "source": source_name,
-
-                    "date": published,
-
-                    "signal": signal
-
-                })
-
-        except Exception:
-
-            # If one search fails, continue with
-            # the remaining searches.
-            continue
-
-    # --------------------------------------------------------
-    # Remove duplicate articles
-    # --------------------------------------------------------
-
-    unique_results = []
-
-    seen_titles = set()
-
-    for item in results:
-
-        title_key = item["title"].strip().lower()
-
-        if title_key not in seen_titles:
-
-            seen_titles.add(title_key)
-
-            unique_results.append(item)
-
-    return unique_results
+    return results
 
 
 # ============================================================
