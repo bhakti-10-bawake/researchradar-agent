@@ -88,20 +88,7 @@ This allows ResearchRadar to investigate topics that are not limited to a predef
 
 ---
 
-### 📰 3. Google News Industry Intelligence
 
-ResearchRadar uses **Google News RSS** to dynamically retrieve current industry and competitor-related developments.
-
-This can help identify:
-
-- Company announcements
-- Product launches
-- Partnerships
-- Investments
-- Funding activity
-- Industry developments
-- Technology trends
-- Regulatory developments
 
 ---
 
