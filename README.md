@@ -82,3 +82,7 @@ researchradar-agent/
 ├── data.json
 ├── requirements.txt
 └── README.md
+## 🚀 Live Demo
+
+👉 [Open ResearchRadar Live App]
+[text](https://researchradar-agent-j5rjyhiou6d3uotxxyvhzj.streamlit.app/)
