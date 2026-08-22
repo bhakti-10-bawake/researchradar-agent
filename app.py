@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import time
+from intelligence_tools import run_intelligence_tools
 
 # ============================================================
 # PAGE CONFIG
