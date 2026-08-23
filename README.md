@@ -253,6 +253,223 @@ The complete machine-generated evaluation output is stored in:
 `evaluation_results.json`
 
 This artifact contains the configuration, scenario-level results, measured metrics, and human evaluation rubric.
+---
+
+# 7. Advanced Tracing & Observability
+
+ResearchRadar implements end-to-end observability for the intelligence mission. The system records agent activity, tool calls, failures, latency, token usage, diagnosis, and recovery.
+
+## Observability Capabilities
+
+The Task 7 implementation tracks:
+
+- Agent execution and decisions
+- Tool/API calls
+- Tool failures and errors
+- Execution latency
+- Token usage
+- Number of traced events
+- Successful and failed task states
+- Verified evidence sources
+- Root-cause diagnosis
+- Automatic recovery actions
+- Before-vs-after execution performance
+
+The observability layer is implemented through a custom `ObservabilityTracer`, which records execution events and calculates mission-level metrics.
+
+## End-to-End Trace
+
+During an intelligence mission, ResearchRadar records the complete execution flow:
+
+```text
+Orchestrator
+      ↓
+Research Agent
+      ↓
+Tool/API Call
+      ↓
+Failure Detection
+      ↓
+Observability Agent
+      ↓
+Root-Cause Diagnosis
+      ↓
+Fallback Tool Selection
+      ↓
+Evidence Collection
+      ↓
+Strategy Agent
+      ↓
+Mission Completion
+```
+
+Each stage can be traced and inspected to understand what the system did, which tools were used, where failures occurred, and how the system recovered.
+
+## Controlled Failure Test
+
+A controlled failure was introduced by forcing the Semantic Scholar API call to fail with:
+
+```text
+HTTP 429 — API rate limit exceeded
+```
+
+The observability layer detected the failure and identified the root cause as an API rate-limit failure.
+
+Instead of terminating the complete research mission, ResearchRadar activated fallback routing.
+
+```text
+Semantic Scholar API
+        ↓
+HTTP 429 Failure
+        ↓
+Failure Diagnosis
+        ↓
+Fallback Routing
+        ↓
+OpenAlex API
+        ↓
+arXiv API
+        ↓
+Evidence Recovered
+        ↓
+Mission Completed
+```
+
+## Automatic Recovery
+
+The system successfully recovered from the controlled failure by switching to alternative evidence sources.
+
+The recovery process demonstrated:
+
+- Failure detection
+- Root-cause identification
+- Fallback tool selection
+- Continued evidence collection
+- Successful mission completion
+- Preservation of execution trace information
+
+## Before vs After Recovery
+
+The controlled failure produced the following measurable change:
+
+| Metric | Before Recovery | After Recovery |
+|---|---:|---:|
+| Task Success | Failed | Successful |
+| Errors | 1 | 0 |
+| Tool Calls | 1 | 3 |
+| Verified Sources | 0 | 2 |
+| Recovery | Failed | 100% |
+| Final Status | Failed | Recovered |
+
+The additional tool calls after failure represent the fallback execution required to complete the mission.
+
+The key measurable improvement was successful task completion after recovery, with errors reduced from **1 to 0**.
+
+## Observability Metrics
+
+A successful recovered execution produced the following trace metrics:
+
+| Metric | Result |
+|---|---:|
+| Mission Status | RECOVERED |
+| Traced Events | 7 |
+| Token Usage | 600 |
+| Latency | 354.9 ms |
+| Errors After Recovery | 0 |
+| Verified Sources | 2 |
+
+These metrics demonstrate that the system measures execution behaviour rather than only producing a final answer.
+
+## Root-Cause Diagnosis
+
+The observability layer automatically identified the failure:
+
+```text
+Root Cause:
+Research Agent → Semantic Scholar API call failed
+
+Failure:
+HTTP 429
+
+Reason:
+API rate limit exceeded
+
+Recovery:
+Fallback tool selection and evidence-grounded continuation
+```
+
+This allows the system to distinguish between a successful execution and an execution that succeeded only after recovering from an internal failure.
+
+## Execution Trace
+
+The observability system stores a structured trace for the completed mission.
+
+Each trace event can contain:
+
+```text
+Timestamp
+Agent
+Action
+Status
+Latency
+Tool/API activity
+Token usage
+Errors
+Diagnosis
+Recovery
+```
+
+This provides an auditable execution history for debugging, evaluation, and demonstration.
+
+## Observability Architecture
+
+The Task 7 observability flow can be summarized as:
+
+```text
+Research Mission
+       ↓
+Agent Execution
+       ↓
+Trace Collection
+       ↓
+Tool/API Monitoring
+       ↓
+Failure Detection
+       ↓
+Root-Cause Diagnosis
+       ↓
+Fallback / Recovery
+       ↓
+Updated Trace
+       ↓
+Final Mission Result
+```
+
+This makes the internal behaviour of the multi-agent system observable instead of treating the final answer as a black box.
+
+## Task 7 Evidence
+
+The submitted UI screenshots demonstrate:
+
+- Overall observability dashboard
+- Controlled Semantic Scholar API failure
+- Automatic root-cause diagnosis
+- Automatic fallback recovery
+- Before-vs-after execution metrics
+- End-to-end execution trace
+- Token and latency measurements
+
+The implementation therefore demonstrates advanced tracing and observability through a controlled failure, automatic diagnosis, measurable recovery, and visible execution metrics.
+
+## Observability Artifact
+
+The complete machine-readable trace is stored in:
+
+`observability_trace.json`
+
+The artifact contains the recorded execution events, diagnosis, before/after metrics, errors, latency, and token usage generated during the Task 7 demonstration.
+
+---
 
 ## 🔄 Dynamic Planning & Conditional Routing
 
