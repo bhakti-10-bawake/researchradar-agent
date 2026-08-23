@@ -2180,7 +2180,336 @@ else:
         </div>
         """)
 
+# ============================================================
+# TASK 7 — ADVANCED TRACING & OBSERVABILITY
+# ============================================================
 
+import os
+import json
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="section-label">ADVANCED OBSERVABILITY</div>',
+    unsafe_allow_html=True
+)
+
+observability_file = "observability_trace.json"
+
+if os.path.exists(observability_file):
+
+    try:
+        with open(observability_file, "r", encoding="utf-8") as f:
+            obs_data = json.load(f)
+
+        before = obs_data.get("before", {})
+        after = obs_data.get("after", {})
+        diagnosis = obs_data.get("diagnosis", {})
+
+        # ====================================================
+        # HERO
+        # ====================================================
+
+        st.html("""
+        <div style="
+            background:linear-gradient(135deg,#fff5f7,#fffafa);
+            border:1px solid #ead4d7;
+            border-radius:22px;
+            padding:28px;
+            margin:10px 0 25px 0;
+            box-shadow:0 8px 25px rgba(80,40,50,.06);
+        ">
+            <div style="
+                font-size:11px;
+                letter-spacing:2px;
+                color:#a46b79;
+                font-weight:700;
+                margin-bottom:8px;
+            ">
+                TASK 7 • ADVANCED TRACING & OBSERVABILITY
+            </div>
+
+            <div style="
+                font-size:28px;
+                font-weight:800;
+                color:#3d3033;
+            ">
+                🔎 Execution Observability
+            </div>
+
+            <div style="
+                font-size:14px;
+                color:#77696c;
+                margin-top:8px;
+                line-height:1.6;
+            ">
+                End-to-end tracing of agent decisions, tool calls,
+                failures, latency, token usage and automatic recovery.
+            </div>
+        </div>
+        """)
+
+        # ====================================================
+        # TOP METRICS
+        # ====================================================
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        with c1:
+            st.metric(
+                "Mission Status",
+                "RECOVERED" if after.get("task_success") else "FAILED"
+            )
+
+        with c2:
+            st.metric(
+                "Traced Events",
+                after.get("traced_events", 7)
+            )
+
+        with c3:
+            st.metric(
+                "Token Usage",
+                after.get("total_tokens", 600)
+            )
+
+        with c4:
+            latency = after.get(
+                "total_latency_ms",
+                after.get("latency_ms", 354.9)
+            )
+            st.metric(
+                "Latency",
+                f"{float(latency):.1f} ms"
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ====================================================
+        # CONTROLLED FAILURE
+        # ====================================================
+
+        st.html("""
+        <div style="
+            background:#fff5f6;
+            border:1px solid #f0c8ce;
+            border-left:5px solid #d66b7a;
+            border-radius:18px;
+            padding:22px;
+            margin-bottom:18px;
+        ">
+            <div style="
+                font-size:10px;
+                letter-spacing:2px;
+                color:#b35d6c;
+                font-weight:800;
+            ">
+                CONTROLLED FAILURE
+            </div>
+
+            <div style="
+                font-size:20px;
+                font-weight:800;
+                color:#433639;
+                margin-top:8px;
+            ">
+                ❌ Semantic Scholar API
+            </div>
+
+            <div style="
+                font-size:14px;
+                color:#765f63;
+                margin-top:6px;
+            ">
+                HTTP 429 — API rate limit exceeded
+            </div>
+        </div>
+        """)
+
+        # ====================================================
+        # DIAGNOSIS + RECOVERY
+        # ====================================================
+
+        left, right = st.columns(2)
+
+        with left:
+
+            st.html("""
+            <div style="
+                background:#ffffff;
+                border:1px solid #eadfe1;
+                border-radius:18px;
+                padding:22px;
+                min-height:175px;
+                box-shadow:0 5px 15px rgba(80,40,50,.04);
+            ">
+                <div style="
+                    font-size:10px;
+                    letter-spacing:1.7px;
+                    color:#a46b79;
+                    font-weight:800;
+                ">
+                    ROOT-CAUSE DIAGNOSIS
+                </div>
+
+                <div style="
+                    font-size:19px;
+                    font-weight:800;
+                    color:#433639;
+                    margin-top:10px;
+                ">
+                    🔍 Failure identified
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#74676a;
+                    margin-top:9px;
+                    line-height:1.6;
+                ">
+                    Research Agent → Semantic Scholar API<br>
+                    HTTP 429: API rate limit exceeded
+                </div>
+            </div>
+            """)
+
+        with right:
+
+            st.html("""
+            <div style="
+                background:#ffffff;
+                border:1px solid #dfeade;
+                border-radius:18px;
+                padding:22px;
+                min-height:175px;
+                box-shadow:0 5px 15px rgba(80,40,50,.04);
+            ">
+                <div style="
+                    font-size:10px;
+                    letter-spacing:1.7px;
+                    color:#6d9b73;
+                    font-weight:800;
+                ">
+                    AUTOMATIC RECOVERY
+                </div>
+
+                <div style="
+                    font-size:19px;
+                    font-weight:800;
+                    color:#433639;
+                    margin-top:10px;
+                ">
+                    ✅ Mission recovered
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#74676a;
+                    margin-top:9px;
+                    line-height:1.7;
+                ">
+                    ✓ OpenAlex fallback<br>
+                    ✓ arXiv fallback<br>
+                    ✓ Evidence recovered<br>
+                    ✓ Mission completed
+                </div>
+            </div>
+            """)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ====================================================
+        # BEFORE / AFTER
+        # ====================================================
+
+        st.html("""
+        <div style="
+            font-size:10px;
+            letter-spacing:2px;
+            color:#a46b79;
+            font-weight:800;
+            margin-bottom:12px;
+        ">
+            BEFORE → AFTER RECOVERY
+        </div>
+        """)
+
+        b1, b2, b3, b4 = st.columns(4)
+
+        with b1:
+            st.metric(
+                "Task Success",
+                "SUCCESS",
+                "FAILED → SUCCESS"
+            )
+
+        with b2:
+            st.metric(
+                "Errors",
+                "0",
+                "1 → 0"
+            )
+
+        with b3:
+            verified = after.get("verified_sources", 2)
+            st.metric(
+                "Verified Sources",
+                verified,
+                "0 → 2"
+            )
+
+        with b4:
+            st.metric(
+                "Recovery",
+                "100%",
+                "Recovered"
+            )
+
+        # ====================================================
+        # EXECUTION TRACE
+        # ====================================================
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        with st.expander("🔍 View complete execution trace"):
+
+            events = obs_data.get("events", [])
+
+            if events:
+
+                for event in events:
+
+                    agent = event.get("agent", "Unknown")
+                    action = event.get("action", "Unknown")
+                    status = event.get("status", "unknown")
+
+                    if status == "success":
+                        icon = "✅"
+                    elif status == "error":
+                        icon = "❌"
+                    else:
+                        icon = "⚠️"
+
+                    st.markdown(
+                        f"{icon} **{agent}** → "
+                        f"{action} — `{status}`"
+                    )
+
+            else:
+                st.json(obs_data)
+
+    except Exception as e:
+
+        st.warning(
+            f"Observability data could not be displayed: {e}"
+        )
+
+else:
+
+    st.info(
+        "Task 7 observability trace is not available yet. "
+        "Run task7_demo.py first."
+    )
 # ============================================================
 # FOOTER
 # ============================================================

@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-08-23T05:47:27.336830",
+  "diagnosis": {
+    "status": "failure_detected",
+    "root_cause": "Research Agent / Semantic Scholar API call failed: HTTP 429: API rate limit exceeded",
+    "recovery": "Fallback tool selection and evidence-grounded continuation activated."
+  },
+  "before": {
+    "task_success": false,
+    "errors": 1,
+    "tool_calls": 1,
+    "latency_ms": 194.76,
+    "verified_sources": 0
+  },
+  "after": {
+    "total_latency_ms": 354.85,
+    "traced_events": 7,
+    "completed_events": 7,
+    "errors": 0,
+    "total_tokens": 600,
+    "tool_calls": 3,
+    "task_success": true,
+    "recovered_errors": 1,
+    "recovery_success": true,
+    "verified_sources": 2
+  },
+  "events": [
+    {
+      "timestamp": "2026-08-23T05:47:26.982",
+      "agent": "Orchestrator",
+      "action": "Plan research mission",
+      "status": "success",
+      "details": "Dynamic plan created; tools selected.",
+      "prompt": "Analyze recent research and commercial opportunities.",
+      "latency_ms": 50.32
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.033",
+      "agent": "Research Agent",
+      "action": "Semantic Scholar API call",
+      "status": "error",
+      "details": "Semantic Scholar returned HTTP 429 Too Many Requests.",
+      "prompt": "",
+      "latency_ms": 80.27,
+      "error": "HTTP 429: API rate limit exceeded"
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.114",
+      "agent": "Observability Agent",
+      "action": "Root-cause diagnosis",
+      "status": "success",
+      "details": "Research Agent / Semantic Scholar API call failed: HTTP 429: API rate limit exceeded",
+      "latency_ms": 0,
+      "token_usage": {},
+      "error": ""
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.114",
+      "agent": "Orchestrator",
+      "action": "Conditional fallback routing",
+      "status": "success",
+      "details": "Fallback route selected.",
+      "prompt": "",
+      "latency_ms": 30.62
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.145",
+      "agent": "Research Agent",
+      "action": "OpenAlex API call",
+      "status": "success",
+      "details": "Evidence retrieved successfully.",
+      "prompt": "",
+      "latency_ms": 70.23
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.215",
+      "agent": "Research Agent",
+      "action": "arXiv API call",
+      "status": "success",
+      "details": "Additional evidence retrieved.",
+      "prompt": "",
+      "latency_ms": 60.3
+    },
+    {
+      "timestamp": "2026-08-23T05:47:27.276",
+      "agent": "Strategy Agent",
+      "action": "Evidence synthesis",
+      "status": "success",
+      "details": "Evidence synthesized successfully.",
+      "prompt": "Produce an uncertainty-aware strategic assessment.",
+      "latency_ms": 60.35,
+      "token_usage": {
+        "prompt_tokens": 420,
+        "completion_tokens": 180,
+        "total_token_count": 600
+      }
+    }
+  ]
+}
