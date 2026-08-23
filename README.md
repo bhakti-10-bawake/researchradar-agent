@@ -1011,7 +1011,35 @@ Research Intelligence
 ```
 
 ResearchRadar doesn't just find research.
+# 8. Deployment
 
+ResearchRadar is deployed as a live Streamlit application for evaluation and demonstration.
+
+## Live Application
+
+**Deployed Project:**  
+https://researchradar-agent-j5rjyhiou6d3uotxxyvhzj.streamlit.app/
+
+The deployed application provides the complete ResearchRadar experience, including:
+
+- Multi-agent research workflow
+- Dynamic planning and tool selection
+- Evidence collection and verification
+- Memory-based reasoning
+- Evaluation and robustness testing
+- Advanced tracing and observability
+- Failure recovery and fallback execution
+- Interactive Intelligence Brief and Strategic Verdict
+
+The application can be accessed directly through the deployed URL without requiring access to the source repository.
+
+## Deployment Configuration
+
+The application is deployed using Streamlit Community Cloud.
+
+Sensitive API credentials are configured through deployment secrets and are not stored directly in the source code.
+
+---
 **It reasons over research, validates evidence, adapts to failures,
 remembers previous work and turns information into intelligence.**
 
