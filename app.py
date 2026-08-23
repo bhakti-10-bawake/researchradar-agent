@@ -32,8 +32,7 @@ st.set_page_config(
 # levels, dedent() leaves 4-8 spaces of leading whitespace on
 # the more deeply nested lines. Markdown treats any line
 # indented 4+ spaces as a code block, so those lines were being
-# rendered as literal text instead of HTML (visible in the
-# screenshot as raw <div> tags).
+# rendered as literal text instead of HTML.
 #
 # Stripping every line individually removes ALL leading/trailing
 # whitespace, so nothing can trigger markdown's code-block rule.
@@ -48,26 +47,12 @@ def render_html(content):
 # ============================================================
 # MARKDOWN ESCAPE HELPER
 #
-# BUG FIX: research abstracts and titles come from arXiv/OpenAlex
-# untouched. Scholarly text is full of characters that Streamlit's
-# markdown renderer treats as formatting instructions instead of
-# literal text:
-#   $   -> triggers LaTeX/KaTeX math rendering (very common in
-#          abstracts, e.g. "$O(n^2)$")
-#   _ * -> triggers italics/bold
-#   #   -> triggers a heading if at the start of a line
-#   `   -> triggers inline code / code blocks
-#   [ ] -> can be misread as the start of a markdown link
-#
-# Since render_html() ultimately calls st.markdown(), any of these
-# characters inside a finding's title/summary/authors — or inside
-# the topic/competitors the user typed, which get echoed back into
-# the Strategy/Memory verdict text — get reinterpreted instead of
-# displayed as-is. That's the "random output" symptom: words
-# vanishing, stray math equations, broken bullet points, etc.
-#
-# Escaping with a backslash tells the markdown parser to render
-# the character literally instead of as formatting.
+# Research abstracts, LLM-generated text, and user-typed input
+# (topic/competitors) all flow into render_html() -> st.markdown().
+# Characters like $ _ * # ` [ ] are markdown/LaTeX formatting
+# instructions, not literal text, so anything containing them
+# gets reinterpreted instead of displayed as-is. Escaping fixes
+# this everywhere dynamic/external text is injected.
 # ============================================================
 
 def escape_dynamic_text(value):
@@ -491,6 +476,195 @@ section[data-testid="stSidebar"] {
 }
 
 
+/* ================= INTELLIGENCE BRIEF (premium hero result) ================= */
+
+.brief-hero {
+    background: linear-gradient(135deg, #FFFDFC, #FBEEF0);
+    border: 1px solid #EBD3D5;
+    border-radius: 26px;
+    padding: 36px;
+    box-shadow: 0 14px 40px rgba(120,70,80,0.10);
+}
+
+.brief-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    font-weight: 900;
+    color: #A2676E;
+    text-transform: uppercase;
+}
+
+.brief-verdict {
+    font-size: 30px;
+    font-weight: 900;
+    color: #4A3535;
+    margin-top: 8px;
+    line-height: 1.3;
+}
+
+.brief-summary {
+    font-size: 14.5px;
+    color: #6F5C5C;
+    margin-top: 14px;
+    line-height: 1.7;
+    max-width: 900px;
+}
+
+.brief-stats {
+    display: flex;
+    gap: 34px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.brief-stat-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: #4A3535;
+}
+
+.brief-stat-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #A2676E;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+
+/* ================= INSIGHT LISTS ================= */
+
+.insight-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+.insight-list li {
+    font-size: 13px;
+    color: #6F5C5C;
+    padding: 8px 0;
+    border-bottom: 1px dashed #EFE1E1;
+    line-height: 1.5;
+}
+
+.insight-list li:last-child {
+    border-bottom: none;
+}
+
+
+/* ================= TREND / RECOMMENDATION CARDS ================= */
+
+.trend-card {
+    background: #F4F7FB;
+    border: 1px solid #D9E3F0;
+    border-left: 6px solid #6E93C4;
+    border-radius: 18px;
+    padding: 24px;
+}
+
+.recommendation-card {
+    background: #FFF9EF;
+    border: 1px solid #F0DFC0;
+    border-left: 6px solid #D8A94B;
+    border-radius: 18px;
+    padding: 24px;
+}
+
+.recommendation-sub {
+    font-size: 12px;
+    color: #8E7777;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed #EFE1CE;
+}
+
+
+/* ================= EXECUTION TIMELINE ================= */
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid #F0E4E4;
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.timeline-icon.success {
+    background: #E4F3E6;
+    color: #4C8C58;
+}
+
+.timeline-icon.warning {
+    background: #FCEFD9;
+    color: #B4842B;
+}
+
+.timeline-icon.error {
+    background: #FBE3E5;
+    color: #B44C57;
+}
+
+.timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.timeline-agent {
+    font-size: 13px;
+    font-weight: 850;
+    color: #4A3535;
+}
+
+.timeline-time {
+    font-size: 10px;
+    color: #A2938E;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.timeline-action {
+    font-size: 12.5px;
+    color: #6F5C5C;
+    margin-top: 2px;
+}
+
+.timeline-details {
+    font-size: 11px;
+    color: #9A8181;
+    margin-top: 3px;
+}
+
+
 /* ================= FOOTER ================= */
 
 .footer {
@@ -521,17 +695,10 @@ OPENALEX_API = "https://api.openalex.org/works"
 # Two layers of memory are implemented:
 #
 # 1. SHORT-TERM (working) memory — st.session_state.
-#    Lives only for the current browser session. Every scan run
-#    in this session is appended here, so the app can reference
-#    "what we just did" across multiple steps/reruns without
-#    hitting disk. Cleared when the tab/session ends.
+#    Lives only for the current browser session.
 #
 # 2. LONG-TERM (persistent) memory — a local JSON file.
-#    Survives app restarts. Every completed scan is appended
-#    here. Before a new scan runs, the MemoryAgent looks up
-#    prior scans on the same topic so the Strategy Agent can
-#    reason about trends over time (e.g. signal strength
-#    increasing/decreasing across repeated scans).
+#    Survives app restarts.
 # ============================================================
 
 MEMORY_FILE = "memory_store.json"
@@ -547,7 +714,6 @@ def load_long_term_memory():
         with open(MEMORY_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
-        # Corrupt or unreadable file — fail safe, don't crash the app.
         return []
 
 
@@ -556,15 +722,13 @@ def save_long_term_memory(entry):
 
     history = load_long_term_memory()
     history.append(entry)
-
-    # Keep the file bounded so it doesn't grow forever.
     history = history[-200:]
 
     try:
         with open(MEMORY_FILE, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2)
     except Exception:
-        pass  # Non-fatal — memory is a bonus feature, not core path.
+        pass
 
 
 def init_session_memory():
@@ -574,8 +738,6 @@ def init_session_memory():
         st.session_state.session_history = []
 
 
-# Initialize short-term memory as soon as it's defined,
-# before anything in the UI tries to read it.
 init_session_memory()
 
 
@@ -811,7 +973,9 @@ def search_openalex(topic, limit=5):
 
 
 # ============================================================
-# TOOL ORCHESTRATOR
+# TOOL ORCHESTRATOR (legacy — retained, no longer on the hot
+# path now that Task 5's LangGraph agent plans tool selection,
+# but kept intact per architecture-preservation requirements)
 # ============================================================
 
 def select_tools(topic):
@@ -848,14 +1012,14 @@ def select_tools(topic):
     ):
         selected.append("arXiv")
 
-    # OpenAlex is always useful for scholarly research.
     selected.append("OpenAlex")
 
     return list(dict.fromkeys(selected))
 
 
 # ============================================================
-# AGENT 1 — RESEARCH AGENT
+# AGENT 1 — RESEARCH AGENT (legacy — retained, unused by the
+# Task 5 LangGraph pipeline, kept intact per architecture rules)
 # ============================================================
 
 class ResearchAgent:
@@ -883,7 +1047,8 @@ class ResearchAgent:
 
 
 # ============================================================
-# AGENT 2 — STRATEGY AGENT
+# AGENT 2 — STRATEGY AGENT (legacy — retained, unused by the
+# Task 5 LangGraph pipeline, kept intact per architecture rules)
 # ============================================================
 
 class StrategyAgent:
@@ -964,13 +1129,6 @@ class StrategyAgent:
                 "The analysis focuses on the research landscape."
             )
 
-        # ----------------------------------------------------
-        # MEMORY-AWARE CONTEXT
-        # Uses long-term memory (prior_scans) passed in by the
-        # MemoryAgent via the Orchestrator to reason about
-        # trends across repeated scans of the same topic.
-        # ----------------------------------------------------
-
         prior_scans = prior_scans or []
 
         if not prior_scans:
@@ -1042,8 +1200,7 @@ class MemoryAgent:
         """
         LONG-TERM RECALL.
         Looks up the persistent memory file for prior scans on
-        a matching topic (case-insensitive substring match),
-        oldest to newest, so the Strategy Agent can spot trends.
+        a matching topic (case-insensitive substring match).
         """
 
         history = load_long_term_memory()
@@ -1065,16 +1222,15 @@ class MemoryAgent:
         - long-term: JSON file on disk (persists across restarts)
         """
 
-        # Short-term (session) memory
         init_session_memory()
         st.session_state.session_history.append(entry)
 
-        # Long-term (persistent) memory
         save_long_term_memory(entry)
 
 
 # ============================================================
-# ORCHESTRATOR — TASK 3
+# ORCHESTRATOR (legacy — retained, unused by the Task 5
+# LangGraph pipeline, kept intact per architecture rules)
 # ============================================================
 
 class ResearchRadarOrchestrator:
@@ -1086,23 +1242,18 @@ class ResearchRadarOrchestrator:
         competitors
     ):
 
-        # STEP 1
         tools = select_tools(topic)
 
-        # STEP 2
         research_agent = ResearchAgent(tools)
 
         findings = research_agent.run(
             topic
         )
 
-        # STEP 3 — recall relevant memory BEFORE strategizing,
-        # so the Strategy Agent can reason about trends.
         memory_agent = MemoryAgent()
 
         prior_scans = memory_agent.recall(topic)
 
-        # STEP 4
         strategy_agent = StrategyAgent()
 
         strategy = strategy_agent.run(
@@ -1112,7 +1263,6 @@ class ResearchRadarOrchestrator:
             prior_scans
         )
 
-        # STEP 5 — commit this scan to short-term + long-term memory
         memory_entry = {
             "topic": topic,
             "objective": objective,
@@ -1131,6 +1281,161 @@ class ResearchRadarOrchestrator:
             "objective": objective,
             "prior_scans": prior_scans
         }
+
+
+# ============================================================
+# UI HELPERS
+# (Rendering-only utilities for Task 5's LangGraph output.
+# These read existing backend fields with safe fallbacks —
+# they never invent data that wasn't returned by the agent.)
+# ============================================================
+
+def _get_first(source, keys, default=None):
+    """Return the first present, non-empty value for any key in `keys`."""
+
+    if not isinstance(source, dict):
+        return default
+
+    for key in keys:
+        value = source.get(key)
+        if value not in (None, ""):
+            return value
+
+    return default
+
+
+def normalize_confidence_pct(value):
+    """Accepts a 0-1 float or a 0-100 number and returns a clean 0-100 int."""
+
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return 0
+
+    if v <= 1:
+        v *= 100
+
+    return max(0, min(100, round(v)))
+
+
+def compute_mission_health(raw_state, final_answer, strategy, execution_trace, verified_findings):
+    """
+    Pulls Mission Health metrics from whatever the backend actually
+    returned. Tries explicit keys first; only falls back to counting
+    real execution_trace entries when no explicit metric was supplied.
+    Never fabricates a number — every value is grounded in returned data.
+    """
+
+    trace = execution_trace or []
+
+    confidence = _get_first(strategy, ["confidence"], 0)
+
+    verified_sources = _get_first(strategy, ["evidence_count"], None)
+    if verified_sources is None:
+        verified_sources = len(verified_findings) if verified_findings else 0
+
+    tool_calls = _get_first(
+        raw_state,
+        ["tool_call_count", "num_tool_calls", "tool_calls"],
+        None
+    )
+    if tool_calls is None:
+        tool_calls = sum(
+            1 for e in trace
+            if isinstance(e, dict) and any(
+                kw in str(e.get("action", "")).lower()
+                for kw in ["search", "fetch", "api", "tool", "arxiv", "openalex", "call"]
+            )
+        )
+
+    iterations = _get_first(
+        raw_state,
+        ["iterations", "iteration_count", "loop_count"],
+        None
+    )
+    if iterations is None:
+        iterations = _get_first(final_answer, ["iterations"], None)
+    if iterations is None:
+        replan_count = sum(
+            1 for e in trace
+            if isinstance(e, dict) and "replan" in str(e.get("action", "")).lower()
+        )
+        iterations = replan_count if replan_count else None
+
+    failures = sum(
+        1 for e in trace
+        if isinstance(e, dict) and str(e.get("status", "")).lower() in ("error", "failed", "failure")
+    )
+
+    recovered = any(
+        isinstance(e, dict) and any(
+            kw in (str(e.get("action", "")) + str(e.get("details", ""))).lower()
+            for kw in ["fallback", "recover", "replan"]
+        )
+        for e in trace
+    )
+
+    if recovered:
+        recovery_status = "Recovered"
+    elif failures > 0:
+        recovery_status = "Unresolved"
+    else:
+        recovery_status = "Nominal"
+
+    return {
+        "confidence": confidence,
+        "verified_sources": verified_sources,
+        "tool_calls": tool_calls,
+        "iterations": iterations if iterations is not None else "N/A",
+        "failures": failures,
+        "recovery_status": recovery_status,
+    }
+
+
+def render_execution_timeline(trace, empty_message="No execution trace was returned for this run."):
+    """Renders execution_trace entries as a visual timeline instead of raw st.write() lines."""
+
+    if not trace:
+        st.caption(empty_message)
+        return
+
+    rows = []
+
+    for event in trace:
+
+        if not isinstance(event, dict):
+            continue
+
+        agent = escape_dynamic_text(event.get("agent", "Agent"))
+        action = escape_dynamic_text(event.get("action", "Step"))
+        details = escape_dynamic_text(event.get("details", event.get("detail", "")))
+        time_val = escape_dynamic_text(event.get("time", event.get("timestamp", "")))
+        status = str(event.get("status", "")).lower()
+
+        if status in ("success", "ok", "completed", "done"):
+            icon_class, icon = "success", "✓"
+        elif status in ("error", "failed", "failure"):
+            icon_class, icon = "error", "✕"
+        else:
+            icon_class, icon = "warning", "•"
+
+        details_html = f'<div class="timeline-details">{details}</div>' if details else ""
+
+        rows.append(f"""
+        <div class="timeline-item">
+            <div class="timeline-icon {icon_class}">{icon}</div>
+            <div class="timeline-content">
+                <div class="timeline-header">
+                    <span class="timeline-agent">{agent}</span>
+                    <span class="timeline-time">{time_val}</span>
+                </div>
+                <div class="timeline-action">{action}</div>
+                {details_html}
+            </div>
+        </div>
+        """)
+
+    render_html(f'<div class="timeline">{"".join(rows)}</div>')
 
 
 # ============================================================
@@ -1243,7 +1548,7 @@ with st.sidebar:
 
 
 # ============================================================
-# HERO
+# 1. HEADER
 # ============================================================
 
 render_html("""
@@ -1258,15 +1563,13 @@ render_html("""
     </div>
 
     <div class="hero-subtitle">
-        Discover research. Detect signals.
-        Make smarter decisions.
+        AI-Powered Multi-Agent Research Intelligence
     </div>
 
     <div class="hero-description">
-        An autonomous multi-agent intelligence
-        system that searches scholarly research,
-        synthesizes evidence, and transforms
-        emerging developments into strategic insights.
+        An autonomous multi-agent system that plans, researches,
+        verifies evidence, and synthesizes emerging developments
+        into strategic intelligence.
     </div>
 
 </div>
@@ -1274,204 +1577,61 @@ render_html("""
 
 
 # ============================================================
-# DASHBOARD
+# 2. RESEARCH MISSION CARD
 # ============================================================
 
 render_html("""
 <div class="section-label">
-    INTELLIGENCE WORKSPACE
+    RESEARCH MISSION
 </div>
 """)
 
-d1, d2, d3, d4 = st.columns(4)
+with st.container(border=True):
 
-with d1:
+    st.markdown("#### 🎯 Define Your Intelligence Objective")
 
-    render_html("""
-    <div class="dashboard-card">
-
-        <div class="card-title">
-            🔬 Research Agent
-        </div>
-
-        <div class="card-value">
-            Ready
-        </div>
-
-        <div class="card-caption">
-            Research discovery & evidence
-        </div>
-
-    </div>
-    """)
-
-with d2:
-
-    render_html("""
-    <div class="dashboard-card">
-
-        <div class="card-title">
-            🎯 Strategy Agent
-        </div>
-
-        <div class="card-value">
-            Ready
-        </div>
-
-        <div class="card-caption">
-            Strategic analysis
-        </div>
-
-    </div>
-    """)
-
-with d3:
-
-    render_html("""
-    <div class="dashboard-card">
-
-        <div class="card-title">
-            🛠️ Intelligence Tools
-        </div>
-
-        <div class="card-value">
-            02
-        </div>
-
-        <div class="card-caption">
-            arXiv + OpenAlex
-        </div>
-
-    </div>
-    """)
-
-with d4:
-
-    render_html("""
-    <div class="dashboard-card">
-
-        <div class="card-title">
-            ⚡ System Status
-        </div>
-
-        <div class="card-value">
-            LIVE
-        </div>
-
-        <div class="card-caption">
-            Intelligence system online
-        </div>
-
-    </div>
-    """)
-
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-
-# ============================================================
-# WORKFLOW
-# ============================================================
-
-render_html("""
-<div class="section-label">
-    AUTONOMOUS AGENT WORKFLOW
-</div>
-""")
-
-w1, w2, w3, w4 = st.columns(4)
-
-workflow_data = [
-    ("01", "Define", "Research objective"),
-    ("02", "Discover", "arXiv + OpenAlex"),
-    ("03", "Analyze", "Strategic signals"),
-    ("04", "Decide", "Actionable insights")
-]
-
-for column, item in zip(
-    [w1, w2, w3, w4],
-    workflow_data
-):
-
-    number, title, description = item
-
-    with column:
-
-        render_html(f"""
-        <div class="workflow">
-
-            <div class="workflow-number">
-                {number}
-            </div>
-
-            <div class="workflow-title">
-                {title}
-            </div>
-
-            <div class="workflow-text">
-                {description}
-            </div>
-
-        </div>
-        """)
-
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-
-# ============================================================
-# INPUT
-# ============================================================
-
-render_html("""
-<div class="section-label">
-    INTELLIGENCE SCAN
-</div>
-""")
-
-st.header("🎯 Define Your Intelligence Objective")
-
-st.write(
-    "Enter a research area and objective. "
-    "The orchestrator will dynamically select "
-    "the relevant external intelligence tools."
-)
-
-col1, col2 = st.columns(2)
-
-with col1:
-
-    topic = st.text_input(
-        "Research / Technology Area",
-        placeholder="e.g. solid-state batteries"
+    st.caption(
+        "Enter a research area and objective. The orchestrator will "
+        "dynamically plan tools, evidence gathering and synthesis."
     )
 
-with col2:
+    col1, col2 = st.columns(2)
 
-    competitors = st.text_input(
-        "Competitors",
-        placeholder="e.g. Tesla, Toyota, BYD"
+    with col1:
+
+        topic = st.text_input(
+            "Research / Technology Area",
+            placeholder="e.g. solid-state batteries"
+        )
+
+    with col2:
+
+        competitors = st.text_input(
+            "Competitors",
+            placeholder="e.g. Tesla, Toyota, BYD"
+        )
+
+    objective = st.text_area(
+        "Intelligence Objective",
+        placeholder=(
+            "e.g. Identify emerging research directions "
+            "and innovation opportunities."
+        ),
+        height=110
     )
 
-objective = st.text_area(
-    "Intelligence Objective",
-    placeholder=(
-        "e.g. Identify emerging research directions "
-        "and innovation opportunities."
-    ),
-    height=110
-)
+    scan_clicked = st.button(
+        "🚀 Start Intelligence Scan",
+        type="primary",
+        use_container_width=True
+    )
 
 
 # ============================================================
-# SCAN BUTTON
+# SCAN EXECUTION
 # ============================================================
 
-if st.button(
-    "🚀 Start Intelligence Scan",
-    type="primary",
-    use_container_width=True
-):
+if scan_clicked:
 
     if not topic.strip():
 
@@ -1489,602 +1649,366 @@ if st.button(
         )
 
     # --------------------------------------------------------
-    # TASK 5 — ADAPTIVE LANGGRAPH ORCHESTRATOR
+    # 3. LIVE AGENT EXECUTION
     # --------------------------------------------------------
 
+    render_html("""
+    <div class="section-label">
+        LIVE AGENT EXECUTION
+    </div>
+    """)
+
     with st.status(
-        "🧭 ResearchRadar agents working...",
+        "🧭 Running the adaptive multi-agent pipeline...",
         expanded=True
-    ):
+    ) as status_box:
 
         st.write(
-            "🧭 **Orchestrator:** Planning the intelligence mission..."
+            "Planning, researching, verifying and synthesizing "
+            "— this can take a moment."
         )
 
-        st.write(
-            "🔀 **Planner:** Selecting tools and decomposing the objective..."
-        )
-
-        st.write(
-            "🔬 **Research Agent:** Collecting evidence in parallel..."
-        )
-
-        task5_state = run_task5_agent(
-            topic,
-            objective,
-            competitors,
-            max_iterations=3,
-            tool_budget=6
-        )
-
-        tools = task5_state.get("selected_tools", [])
-        findings = task5_state.get("findings", [])
-        strategy = task5_state.get("strategy", {})
-
-        st.write(
-            f"🛠️ **Tools selected:** {', '.join(tools) if tools else 'Adaptive fallback'}"
-        )
-
-        st.write(
-            "⚖️ **Evidence Judge:** Checking relevance, conflicts and uncertainty..."
-        )
-
-        st.write(
-            "🤝 **Agent handoff:** Research → Evidence Judge → Self-Evaluator → Strategy"
-        )
-
-        if strategy.get("llm_status") == "success":
-            st.write(
-                "🧠 **Strategy Agent:** Gemini synthesized the verified evidence into an intelligence brief."
+        try:
+            task5_state = run_task5_agent(
+                topic,
+                objective,
+                competitors,
+                max_iterations=3,
+                tool_budget=6
             )
-        else:
-            st.write(
-                "🧠 **Strategy Agent:** LLM unavailable; evidence-grounded fallback used."
-            )
+        except Exception as agent_error:
+            status_box.update(label="❌ Pipeline failed", state="error")
+            st.error(f"The research agent pipeline failed to complete: {agent_error}")
+            st.stop()
 
-        st.write(
-            "✅ **Adaptive multi-agent pipeline complete.**"
+        status_box.update(
+            label="✅ Multi-agent pipeline complete.",
+            state="complete"
         )
+
+    tools = task5_state.get("selected_tools", []) or []
+    findings = task5_state.get("findings", []) or []
+    strategy = task5_state.get("strategy", {}) or {}
+    execution_trace = task5_state.get("execution_trace", []) or []
+    verified_findings = task5_state.get("verified_findings", []) or []
+    final_answer = task5_state.get("final_answer", {}) or {}
 
     result = {
         "findings": findings,
         "strategy": strategy,
-        "final_answer": task5_state.get("final_answer", {}),
-        "execution_trace": task5_state.get("execution_trace", []),
+        "final_answer": final_answer,
+        "execution_trace": execution_trace,
         "selected_tools": tools,
-        "verified_findings": task5_state.get("verified_findings", []),
+        "verified_findings": verified_findings,
+        "raw_state": task5_state,
     }
 
-    final_answer = result["final_answer"]
-    final_verdict = final_answer.get("verdict") or strategy.get("verdict", "WATCH CLOSELY")
+    render_execution_timeline(execution_trace)
 
+    # --------------------------------------------------------
+    # PERSIST TO MEMORY (Task 4 continuity)
+    # --------------------------------------------------------
 
-    # ========================================================
-    # AI INTELLIGENCE BRIEF — TASK 5
-    # ========================================================
+    final_verdict = final_answer.get("verdict") or strategy.get("verdict") or "Watch Closely"
 
-    st.divider()
+    memory_agent = MemoryAgent()
+
+    memory_entry = {
+        "topic": topic,
+        "objective": objective,
+        "competitors": competitors,
+        "signal": final_verdict if isinstance(final_verdict, str) else strategy.get("signal", "N/A"),
+        "total_findings": len(findings),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+
+    memory_agent.remember(memory_entry)
+
+    # --------------------------------------------------------
+    # 4. INTELLIGENCE BRIEF
+    # --------------------------------------------------------
+
+    st.markdown("<br>", unsafe_allow_html=True)
 
     render_html("""
     <div class="section-label">
-        AI INTELLIGENCE BRIEF
+        INTELLIGENCE BRIEF
     </div>
     """)
 
-    summary_text = strategy.get("summary") or strategy.get("verdict") or "No synthesis was generated."
-    trends_text = strategy.get("trends", "")
-    opportunities = strategy.get("opportunities", []) or []
-    risks = strategy.get("risks", []) or []
-    confidence = strategy.get("confidence", 0)
-    evidence_count = strategy.get("evidence_count", len(task5_state.get("verified_findings", [])))
-
-    key_findings = strategy.get("key_findings", []) or []
-    competitor_context = strategy.get("competitor_analysis", "")
-    recommendation_text = strategy.get("recommendation", "")
+    summary_text = strategy.get("summary") or strategy.get("verdict") or "No synthesis was generated for this scan."
+    confidence_raw = strategy.get("confidence", 0)
+    confidence_pct = normalize_confidence_pct(confidence_raw)
+    evidence_count = strategy.get("evidence_count")
+    if evidence_count is None:
+        evidence_count = len(verified_findings) if verified_findings else len(findings)
     llm_status = strategy.get("llm_status", "unknown")
+    llm_status_label = "Gemini Synthesis" if llm_status == "success" else "Evidence Fallback"
 
     render_html(f"""
-    <div class="signal">
-        <div class="signal-level">🧠 Intelligence Brief</div>
-        <p>{escape_dynamic_text(summary_text)}</p>
-        <p><strong>Emerging trend:</strong> {escape_dynamic_text(trends_text or "No clear trend established.")}</p>
-        <p><strong>Confidence:</strong> {int(float(confidence) * 100)}% &nbsp; • &nbsp; <strong>Verified evidence:</strong> {evidence_count} sources</p>
+    <div class="brief-hero">
+        <div class="brief-label">Verdict</div>
+        <div class="brief-verdict">{escape_dynamic_text(final_verdict)}</div>
+        <div class="brief-summary">{escape_dynamic_text(summary_text)}</div>
+        <div class="brief-stats">
+            <div>
+                <div class="brief-stat-value">{confidence_pct}%</div>
+                <div class="brief-stat-label">Confidence</div>
+            </div>
+            <div>
+                <div class="brief-stat-value">{evidence_count}</div>
+                <div class="brief-stat-label">Verified Sources</div>
+            </div>
+            <div>
+                <div class="brief-stat-value" style="font-size:16px;">{escape_dynamic_text(llm_status_label)}</div>
+                <div class="brief-stat-label">Synthesis Engine</div>
+            </div>
+        </div>
     </div>
     """)
 
-    if llm_status == "success":
-        render_html("""
-        <div class="dashboard-card" style="margin-top:14px;">
-            <div class="card-title">🔎 What the evidence is actually saying</div>
-        </div>
-        """)
-        for i, item in enumerate(key_findings[:5], 1):
-            if isinstance(item, dict):
-                title = item.get("title", "Key finding")
-                insight = item.get("insight") or item.get("summary", "")
-                source = item.get("source", "Verified evidence")
-            else:
-                title, insight, source = "Key finding", str(item), "Verified evidence"
-            render_html(f"""
-            <div class="finding">
-                <div class="finding-title">{i}. {escape_dynamic_text(title)}</div>
-                <div class="finding-summary">{escape_dynamic_text(insight)}</div>
-                <div class="finding-meta"><strong>Evidence:</strong> {escape_dynamic_text(source)}</div>
-            </div>
-            """)
+    # --------------------------------------------------------
+    # 5. TWO-COLUMN INSIGHTS
+    # --------------------------------------------------------
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    render_html("""
+    <div class="section-label">
+        STRATEGIC INSIGHTS
+    </div>
+    """)
+
+    opportunities = strategy.get("opportunities") or []
+    risks = strategy.get("risks") or []
+
+    col_opp, col_risk = st.columns(2)
+
+    with col_opp:
+
+        items_html = "".join(
+            f"<li>{escape_dynamic_text(x)}</li>" for x in opportunities[:5]
+        ) or "<li>No opportunities were identified from the verified evidence.</li>"
 
         render_html(f"""
-        <div class="memory" style="margin-top:14px;">
-            <div class="section-label">COMPETITOR CONTEXT</div>
-            <div class="memory-text">{escape_dynamic_text(competitor_context or "No competitor-specific conclusion was supported by the evidence.")}</div>
-            <div class="section-label" style="margin-top:16px;">RECOMMENDED NEXT MOVE</div>
-            <div class="memory-text">{escape_dynamic_text(recommendation_text)}</div>
+        <div class="dashboard-card" style="min-height:auto;">
+            <div class="card-title">🚀 Opportunities</div>
+            <ul class="insight-list">{items_html}</ul>
         </div>
         """)
 
-    b1, b2 = st.columns(2)
+    with col_risk:
 
-    with b1:
-        render_html("""<div class="dashboard-card"><div class="card-title">🚀 Opportunities</div>""" + "".join(f"<p>• {escape_dynamic_text(x)}</p>" for x in opportunities[:3]) + "</div>")
+        items_html = "".join(
+            f"<li>{escape_dynamic_text(x)}</li>" for x in risks[:5]
+        ) or "<li>No material risks were flagged.</li>"
 
-    with b2:
-        render_html("""<div class="dashboard-card"><div class="card-title">⚠️ Risks / Uncertainty</div>""" + "".join(f"<p>• {escape_dynamic_text(x)}</p>" for x in risks[:3]) + "</div>")
-
-
-    # ========================================================
-    # SUMMARY
-    # ========================================================
-
-    st.divider()
-
-    render_html("""
-    <div class="section-label">
-        INTELLIGENCE SUMMARY
-    </div>
-    """)
-
-    m1, m2, m3, m4 = st.columns(4)
-
-    with m1:
-        st.metric(
-            "Total Findings",
-            strategy["total"]
-        )
-
-    with m2:
-        st.metric(
-            "arXiv",
-            strategy["arxiv"]
-        )
-
-    with m3:
-        st.metric(
-            "OpenAlex",
-            strategy["openalex"]
-        )
-
-    with m4:
-        st.metric(
-            "Signal",
-            strategy["signal"]
-        )
-
-
-    # ========================================================
-    # STRATEGIC VERDICT
-    # ========================================================
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    render_html(f"""
-    <div class="signal">
-
-        <div class="section-label">
-            STRATEGIC VERDICT
-        </div>
-
-        <div class="signal-level">
-            {strategy["signal"]} SIGNAL
-        </div>
-
-        <p>
-            {escape_dynamic_text(final_verdict)}
-        </p>
-
-        <p>
-            <strong>Recommendation:</strong>
-            {escape_dynamic_text(strategy["recommendation"])}
-        </p>
-
-        <p>
-            <strong>Competitor Context:</strong>
-            {escape_dynamic_text(strategy["competitor_analysis"])}
-        </p>
-
-    </div>
-    """)
-
-
-    # ========================================================
-    # MEMORY CONTEXT
-    # ========================================================
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    render_html(f"""
-    <div class="memory">
-
-        <div class="section-label">
-            🧠 MEMORY CONTEXT
-        </div>
-
-        <div class="memory-text">
-            {escape_dynamic_text(strategy["memory_context"])}
-        </div>
-
-    </div>
-    """)
-     # ========================================================
-# TASK 6 — EVALUATION & RELIABILITY
-# ========================================================
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-render_html("""
-<div class="section-label">
-    TASK 6 • EVALUATION & RELIABILITY
-</div>
-""")
-
-evaluation_file = "evaluation_results.json"
-
-if os.path.exists(evaluation_file):
-
-    try:
-        with open(evaluation_file, "r", encoding="utf-8") as f:
-            evaluation_data = json.load(f)
-
-        scenarios = evaluation_data.get("scenarios", [])
-
-        render_html("""
-        <div class="signal">
-            <div class="signal-level">
-                📊 Agent Evaluation
-            </div>
-
-            <p>
-                ResearchRadar was evaluated across normal,
-                ambiguous and contradictory research conditions.
-                The evaluation measures task completion, evidence
-                quality, groundedness, hallucination risk,
-                recovery, uncertainty awareness, efficiency
-                and adaptive behaviour.
-            </p>
+        render_html(f"""
+        <div class="dashboard-card" style="min-height:auto;">
+            <div class="card-title">⚠️ Risks &amp; Uncertainty</div>
+            <ul class="insight-list">{items_html}</ul>
         </div>
         """)
 
-        # ----------------------------------------------------
-        # SCENARIO RESULTS
-        # ----------------------------------------------------
-
-        for scenario in scenarios:
-
-            name = scenario.get("name", "Unknown scenario")
-            runs = scenario.get("runs", [])
-
-            if not runs:
-                continue
-
-            run = runs[0]
-
-            task_completion = run.get("task_completion", 0)
-            evidence_quality = run.get("evidence_quality", 0)
-            groundedness = run.get("groundedness", 0)
-            hallucination = run.get("hallucination_risk", 0)
-            recovery = run.get("recovery", 0)
-            uncertainty = run.get("uncertainty_awareness", 0)
-            efficiency = run.get("resource_efficiency", 0)
-            adaptive = run.get("adaptive_behavior", 0)
-            latency = run.get("latency_seconds", 0)
-
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            render_html(f"""
-            <div class="dashboard-card">
-
-                <div class="card-title">
-                    🧪 {escape_dynamic_text(name.title())} Scenario
-                </div>
-
-                <p style="margin-top:8px;">
-                    <strong>Task Completion:</strong>
-                    {task_completion}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Groundedness:</strong>
-                    {groundedness}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Evidence Quality:</strong>
-                    {evidence_quality}%
-                </p>
-
-                <p>
-                    <strong>Hallucination Risk:</strong>
-                    {hallucination}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Recovery:</strong>
-                    {recovery}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Uncertainty Awareness:</strong>
-                    {uncertainty}%
-                </p>
-
-                <p>
-                    <strong>Adaptive Behaviour:</strong>
-                    {adaptive}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Resource Efficiency:</strong>
-                    {efficiency}%
-                    &nbsp; • &nbsp;
-
-                    <strong>Latency:</strong>
-                    {latency:.2f}s
-                </p>
-
-            </div>
-            """)
-
-        # ----------------------------------------------------
-        # OVERALL EVALUATION
-        # ----------------------------------------------------
-
-        all_runs = []
-
-        for scenario in scenarios:
-            all_runs.extend(scenario.get("runs", []))
-
-        if all_runs:
-
-            def avg(metric):
-                values = [
-                    float(run.get(metric, 0))
-                    for run in all_runs
-                    if run.get(metric) is not None
-                ]
-
-                return round(sum(values) / len(values), 1) if values else 0
-
-            e1, e2, e3, e4 = st.columns(4)
-
-            with e1:
-                st.metric(
-                    "Task Completion",
-                    f"{avg('task_completion')}%"
-                )
-
-            with e2:
-                st.metric(
-                    "Groundedness",
-                    f"{avg('groundedness')}%"
-                )
-
-            with e3:
-                st.metric(
-                    "Hallucination Risk",
-                    f"{avg('hallucination_risk')}%"
-                )
-
-            with e4:
-                st.metric(
-                    "Recovery",
-                    f"{avg('recovery')}%"
-                )
-
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            render_html(f"""
-            <div class="memory">
-
-                <div class="section-label">
-                    EVALUATION CONCLUSION
-                </div>
-
-                <div class="memory-text">
-
-                    <strong>Scenarios tested:</strong>
-                    {len(scenarios)}
-                    <br>
-
-                    <strong>Repeated runs:</strong>
-                    {evaluation_data.get("configuration", {}).get("repeats", 1)}
-                    <br>
-
-                    <strong>Tool budget:</strong>
-                    {evaluation_data.get("configuration", {}).get("tool_budget", "Adaptive")}
-                    <br>
-
-                    <strong>Evaluation status:</strong>
-                    Completed
-                    <br><br>
-
-                    ResearchRadar demonstrates measurable task completion,
-                    evidence grounding, uncertainty awareness and recovery
-                    behaviour across different research conditions.
-
-                </div>
-
-            </div>
-            """)
-
-    except Exception as evaluation_error:
-
-        st.warning(
-            f"Evaluation results could not be loaded: {evaluation_error}"
-        )
-
-else:
-
-    render_html("""
-    <div class="dashboard-card">
-
-        <div class="card-title">
-            📊 Evaluation Results
-        </div>
-
-        <p>
-            Run <strong>evaluation.py</strong> to generate
-            evaluation_results.json and display Task 6 results here.
-        </p>
-
-    </div>
-    """)
-
-    # ========================================================
-    # FINDINGS
-    # ========================================================
+    # --------------------------------------------------------
+    # 6. EMERGING TRENDS
+    # --------------------------------------------------------
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    render_html("""
-    <div class="section-label">
-        RESEARCH INTELLIGENCE
+    trends_text = strategy.get("trends") or "No clear emerging trend was established from the current evidence."
+
+    render_html(f"""
+    <div class="trend-card">
+        <div class="section-label">EMERGING TRENDS</div>
+        <div class="memory-text">{escape_dynamic_text(trends_text)}</div>
     </div>
     """)
 
-    st.header("📚 Supporting Evidence")
+    # --------------------------------------------------------
+    # 7. RECOMMENDATION
+    # --------------------------------------------------------
 
-    st.caption(
-        f"The agent synthesized the evidence above. Raw sources are retained here for verification ({len(findings)} collected)."
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    recommendation_text = strategy.get("recommendation") or "No specific recommendation was generated for this scan."
+    competitor_context = strategy.get("competitor_analysis") or ""
+
+    competitor_html = (
+        f'<div class="recommendation-sub"><strong>Competitor context:</strong> {escape_dynamic_text(competitor_context)}</div>'
+        if competitor_context else ""
     )
 
-    if not findings:
+    render_html(f"""
+    <div class="recommendation-card">
+        <div class="section-label">RECOMMENDED NEXT MOVE</div>
+        <div class="memory-text" style="font-size:14.5px; color:#4A3535; font-weight:650;">
+            {escape_dynamic_text(recommendation_text)}
+        </div>
+        {competitor_html}
+    </div>
+    """)
 
-        st.warning(
-            "No research findings were returned."
+    # --------------------------------------------------------
+    # 8. MISSION HEALTH
+    # --------------------------------------------------------
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    render_html("""
+    <div class="section-label">
+        MISSION HEALTH
+    </div>
+    """)
+
+    health = compute_mission_health(
+        task5_state,
+        final_answer,
+        strategy,
+        execution_trace,
+        verified_findings
+    )
+
+    with st.container(border=True):
+
+        h1, h2, h3, h4, h5, h6 = st.columns(6)
+
+        with h1:
+            st.metric("Confidence", f"{normalize_confidence_pct(health['confidence'])}%")
+
+        with h2:
+            st.metric("Verified Sources", health["verified_sources"])
+
+        with h3:
+            st.metric("Tool Calls", health["tool_calls"])
+
+        with h4:
+            st.metric("Iterations", health["iterations"])
+
+        with h5:
+            st.metric("Failures", health["failures"])
+
+        with h6:
+            st.metric("Recovery", health["recovery_status"])
+
+    # --------------------------------------------------------
+    # 9. VERIFIED EVIDENCE
+    # --------------------------------------------------------
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    render_html("""
+    <div class="section-label">
+        VERIFIED EVIDENCE
+    </div>
+    """)
+
+    evidence_to_show = verified_findings if verified_findings else findings
+
+    arxiv_n = sum(1 for f in findings if isinstance(f, dict) and f.get("source") == "arXiv")
+    openalex_n = sum(1 for f in findings if isinstance(f, dict) and f.get("source") == "OpenAlex")
+
+    if findings:
+        st.caption(
+            f"{len(evidence_to_show)} source(s) reviewed by the Research Agent "
+            f"— {arxiv_n} arXiv, {openalex_n} OpenAlex"
         )
+    else:
+        st.caption("No sources were reviewed for this scan.")
+
+    if not evidence_to_show:
+
+        st.info("No research findings were returned for this scan.")
 
     else:
 
-        with st.expander(
-            f"View supporting sources ({len(findings)})",
-            expanded=False
-        ):
-            for index, finding in enumerate(
-                findings[:8],
-                start=1
-            ):
+        for index, finding in enumerate(evidence_to_show, start=1):
 
-                title = finding.get(
-                    "title",
-                    "Untitled research"
-                )
+            if not isinstance(finding, dict):
+                continue
 
-                summary = finding.get(
-                    "summary",
-                    "No summary available."
-                )
+            title = finding.get("title", "Untitled research")
+            summary = finding.get("summary", "No summary available.")
+            source = finding.get("source", "Unknown")
+            date = finding.get("date", "Unknown")
+            authors = finding.get("authors") or "Not available"
+            url = finding.get("url", "")
 
-                source = finding.get(
-                    "source",
-                    "Unknown"
-                )
+            if len(summary) > 650:
+                summary = summary[:650] + "..."
 
-                date = finding.get(
-                    "date",
-                    "Unknown"
-                )
+            title_preview = title if len(title) <= 90 else title[:90] + "..."
 
-                authors = finding.get(
-                    "authors",
-                    "Not available"
-                )
-
-                url = finding.get(
-                    "url",
-                    ""
-                )
-
-                if len(summary) > 650:
-                    summary = summary[:650] + "..."
-
-                safe_title = escape_dynamic_text(title)
-                safe_summary = escape_dynamic_text(summary)
-                safe_authors = escape_dynamic_text(
-                    authors if authors else "Not available"
-                )
-                safe_date = escape_dynamic_text(date)
+            with st.expander(f"{index}. {title_preview}"):
 
                 render_html(f"""
-                <div class="finding">
-
-                    <span class="badge">
-                        {source}
-                    </span>
-
-                    <div class="finding-title">
-                        {index}. {safe_title}
-                    </div>
-
-                    <div class="finding-summary">
-                        {safe_summary}
-                    </div>
-
-                    <div class="finding-meta">
-                        <strong>Authors:</strong>
-                        {safe_authors}
-
-                        &nbsp; • &nbsp;
-
-                        <strong>Date:</strong>
-                        {safe_date}
-                    </div>
-
+                <span class="badge">{escape_dynamic_text(source)}</span>
+                <div class="finding-summary" style="margin-top:10px;">
+                    {escape_dynamic_text(summary)}
+                </div>
+                <div class="finding-meta">
+                    <strong>Authors:</strong> {escape_dynamic_text(authors)}
+                    &nbsp;•&nbsp;
+                    <strong>Date:</strong> {escape_dynamic_text(date)}
                 </div>
                 """)
 
                 if url:
+                    st.markdown(f"[↗ View {source} source]({url})")
 
-                    st.markdown(
-                        f"[↗ View {source} source]({url})"
-                    )
+    # --------------------------------------------------------
+    # 10. EXECUTION TRACE (collapsed)
+    # --------------------------------------------------------
 
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # ========================================================
-    # SHORT-TERM (SESSION) MEMORY
-    # ========================================================
+    with st.expander("🔍 View full execution trace"):
+        render_execution_timeline(
+            execution_trace,
+            empty_message="No execution trace was returned for this run."
+        )
+
+    # --------------------------------------------------------
+    # 11. MEMORY
+    # --------------------------------------------------------
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     render_html("""
     <div class="section-label">
-        🕒 SESSION MEMORY (THIS BROWSER SESSION)
+        MEMORY CONTEXT
     </div>
     """)
 
-    with st.expander(
-        f"{len(st.session_state.session_history)} scan(s) run this session",
-        expanded=False
-    ):
+    memory_context_text = strategy.get("memory_context") or "Memory context was not returned for this scan."
 
-        for _i, _scan in enumerate(
-            reversed(st.session_state.session_history),
-            start=1
-        ):
+    render_html(f"""
+    <div class="memory">
+        <div class="memory-text">{escape_dynamic_text(memory_context_text)}</div>
+    </div>
+    """)
 
-            render_html(f"""
-            <div class="memory-pill">
-                {escape_dynamic_text(_scan["topic"])} — {_scan["signal"]} — {_scan["timestamp"]}
-            </div>
-            """)
+    with st.expander(f"🕒 Session memory — {len(st.session_state.session_history)} scan(s) this session"):
 
+        if not st.session_state.session_history:
 
-    # ========================================================
-    # MULTI-AGENT COLLABORATION
-    # ========================================================
+            st.caption("No scans recorded yet in this session.")
+
+        else:
+
+            for _scan in reversed(st.session_state.session_history):
+
+                render_html(f"""
+                <div class="memory-pill">
+                    {escape_dynamic_text(_scan.get("topic", ""))} —
+                    {escape_dynamic_text(_scan.get("signal", "—"))} —
+                    {escape_dynamic_text(_scan.get("timestamp", ""))}
+                </div>
+                """)
+
+    # --------------------------------------------------------
+    # MULTI-AGENT COLLABORATION (existing architecture explainer)
+    # --------------------------------------------------------
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -2180,12 +2104,212 @@ else:
         </div>
         """)
 
+
 # ============================================================
-# TASK 7 — ADVANCED TRACING & OBSERVABILITY
+# TASK 6 — EVALUATION & RELIABILITY
+# (Always visible — reads its own file, independent of a scan)
 # ============================================================
 
-import os
-import json
+st.markdown("<br>", unsafe_allow_html=True)
+
+render_html("""
+<div class="section-label">
+    TASK 6 • EVALUATION & RELIABILITY
+</div>
+""")
+
+evaluation_file = "evaluation_results.json"
+
+if os.path.exists(evaluation_file):
+
+    try:
+        with open(evaluation_file, "r", encoding="utf-8") as f:
+            evaluation_data = json.load(f)
+
+        scenarios = evaluation_data.get("scenarios", [])
+
+        render_html("""
+        <div class="signal">
+            <div class="signal-level">
+                📊 Agent Evaluation
+            </div>
+
+            <p>
+                ResearchRadar was evaluated across normal,
+                ambiguous and contradictory research conditions.
+                The evaluation measures task completion, evidence
+                quality, groundedness, hallucination risk,
+                recovery, uncertainty awareness, efficiency
+                and adaptive behaviour.
+            </p>
+        </div>
+        """)
+
+        for scenario in scenarios:
+
+            name = scenario.get("name", "Unknown scenario")
+            runs = scenario.get("runs", [])
+
+            if not runs:
+                continue
+
+            run = runs[0]
+
+            task_completion = run.get("task_completion", 0)
+            evidence_quality = run.get("evidence_quality", 0)
+            groundedness = run.get("groundedness", 0)
+            hallucination = run.get("hallucination_risk", 0)
+            recovery = run.get("recovery", 0)
+            uncertainty = run.get("uncertainty_awareness", 0)
+            efficiency = run.get("resource_efficiency", 0)
+            adaptive = run.get("adaptive_behavior", 0)
+            latency = run.get("latency_seconds", 0)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            render_html(f"""
+            <div class="dashboard-card">
+
+                <div class="card-title">
+                    🧪 {escape_dynamic_text(name.title())} Scenario
+                </div>
+
+                <p style="margin-top:8px;">
+                    <strong>Task Completion:</strong>
+                    {task_completion}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Groundedness:</strong>
+                    {groundedness}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Evidence Quality:</strong>
+                    {evidence_quality}%
+                </p>
+
+                <p>
+                    <strong>Hallucination Risk:</strong>
+                    {hallucination}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Recovery:</strong>
+                    {recovery}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Uncertainty Awareness:</strong>
+                    {uncertainty}%
+                </p>
+
+                <p>
+                    <strong>Adaptive Behaviour:</strong>
+                    {adaptive}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Resource Efficiency:</strong>
+                    {efficiency}%
+                    &nbsp; • &nbsp;
+
+                    <strong>Latency:</strong>
+                    {latency:.2f}s
+                </p>
+
+            </div>
+            """)
+
+        all_runs = []
+
+        for scenario in scenarios:
+            all_runs.extend(scenario.get("runs", []))
+
+        if all_runs:
+
+            def avg(metric):
+                values = [
+                    float(run.get(metric, 0))
+                    for run in all_runs
+                    if run.get(metric) is not None
+                ]
+
+                return round(sum(values) / len(values), 1) if values else 0
+
+            e1, e2, e3, e4 = st.columns(4)
+
+            with e1:
+                st.metric("Task Completion", f"{avg('task_completion')}%")
+
+            with e2:
+                st.metric("Groundedness", f"{avg('groundedness')}%")
+
+            with e3:
+                st.metric("Hallucination Risk", f"{avg('hallucination_risk')}%")
+
+            with e4:
+                st.metric("Recovery", f"{avg('recovery')}%")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            render_html(f"""
+            <div class="memory">
+
+                <div class="section-label">
+                    EVALUATION CONCLUSION
+                </div>
+
+                <div class="memory-text">
+
+                    <strong>Scenarios tested:</strong>
+                    {len(scenarios)}
+                    <br>
+
+                    <strong>Repeated runs:</strong>
+                    {evaluation_data.get("configuration", {}).get("repeats", 1)}
+                    <br>
+
+                    <strong>Tool budget:</strong>
+                    {evaluation_data.get("configuration", {}).get("tool_budget", "Adaptive")}
+                    <br>
+
+                    <strong>Evaluation status:</strong>
+                    Completed
+                    <br><br>
+
+                    ResearchRadar demonstrates measurable task completion,
+                    evidence grounding, uncertainty awareness and recovery
+                    behaviour across different research conditions.
+
+                </div>
+
+            </div>
+            """)
+
+    except Exception as evaluation_error:
+
+        st.warning(
+            f"Evaluation results could not be loaded: {evaluation_error}"
+        )
+
+else:
+
+    render_html("""
+    <div class="dashboard-card">
+
+        <div class="card-title">
+            📊 Evaluation Results
+        </div>
+
+        <p>
+            Run <strong>evaluation.py</strong> to generate
+            evaluation_results.json and display Task 6 results here.
+        </p>
+
+    </div>
+    """)
+
+
+# ============================================================
+# TASK 7 — ADVANCED TRACING & OBSERVABILITY
+# (Always visible — reads its own file, independent of a scan)
+# ============================================================
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -2205,10 +2329,6 @@ if os.path.exists(observability_file):
         before = obs_data.get("before", {})
         after = obs_data.get("after", {})
         diagnosis = obs_data.get("diagnosis", {})
-
-        # ====================================================
-        # HERO
-        # ====================================================
 
         st.html("""
         <div style="
@@ -2249,10 +2369,6 @@ if os.path.exists(observability_file):
         </div>
         """)
 
-        # ====================================================
-        # TOP METRICS
-        # ====================================================
-
         c1, c2, c3, c4 = st.columns(4)
 
         with c1:
@@ -2284,10 +2400,6 @@ if os.path.exists(observability_file):
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
-
-        # ====================================================
-        # CONTROLLED FAILURE
-        # ====================================================
 
         st.html("""
         <div style="
@@ -2325,10 +2437,6 @@ if os.path.exists(observability_file):
             </div>
         </div>
         """)
-
-        # ====================================================
-        # DIAGNOSIS + RECOVERY
-        # ====================================================
 
         left, right = st.columns(2)
 
@@ -2418,10 +2526,6 @@ if os.path.exists(observability_file):
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ====================================================
-        # BEFORE / AFTER
-        # ====================================================
-
         st.html("""
         <div style="
             font-size:10px;
@@ -2437,37 +2541,17 @@ if os.path.exists(observability_file):
         b1, b2, b3, b4 = st.columns(4)
 
         with b1:
-            st.metric(
-                "Task Success",
-                "SUCCESS",
-                "FAILED → SUCCESS"
-            )
+            st.metric("Task Success", "SUCCESS", "FAILED → SUCCESS")
 
         with b2:
-            st.metric(
-                "Errors",
-                "0",
-                "1 → 0"
-            )
+            st.metric("Errors", "0", "1 → 0")
 
         with b3:
             verified = after.get("verified_sources", 2)
-            st.metric(
-                "Verified Sources",
-                verified,
-                "0 → 2"
-            )
+            st.metric("Verified Sources", verified, "0 → 2")
 
         with b4:
-            st.metric(
-                "Recovery",
-                "100%",
-                "Recovered"
-            )
-
-        # ====================================================
-        # EXECUTION TRACE
-        # ====================================================
+            st.metric("Recovery", "100%", "Recovered")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -2510,6 +2594,8 @@ else:
         "Task 7 observability trace is not available yet. "
         "Run task7_demo.py first."
     )
+
+
 # ============================================================
 # FOOTER
 # ============================================================
