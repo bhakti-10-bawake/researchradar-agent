@@ -1,2 +1,5 @@
 streamlit
+langgraph
+langchain
+google-generativeai
 requests
